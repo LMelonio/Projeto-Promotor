@@ -1,0 +1,7 @@
+{
+  "extends": ["universe/native"],
+  "rules": {
+    "import/order": ["warn", { "alphabetize": { "order": "asc" } }],
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  }
+}
