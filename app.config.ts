@@ -30,7 +30,8 @@ const config: ExpoConfig = {
         'A câmera é usada para registrar fotos obrigatórias de atividades e rupturas durante a visita.',
       NSLocationWhenInUseUsageDescription:
         'A localização é usada para confirmar o check-in e check-out no cliente visitado.',
-      NSFaceIDUsageDescription: 'Use Face ID para entrar no aplicativo com mais agilidade e segurança.',
+      NSFaceIDUsageDescription:
+        'Use Face ID para entrar no aplicativo com mais agilidade e segurança.',
     },
   },
   android: {
