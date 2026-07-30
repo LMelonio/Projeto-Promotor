@@ -81,12 +81,12 @@ export function HomeScreen() {
         <View className="mb-4">
           <NextVisitCard
             visit={nextVisit.data}
-            onStartCheckIn={() => {
-              // TODO (Fase 2): navegar direto para o Detalhe do Cliente/Check-in.
-              // Por ora, a aba "Clientes" ainda não aceita parâmetro de rota —
-              // isso entra junto da implementação real dessa tela.
-              navigation.navigate('Clientes');
-            }}
+            onStartCheckIn={(visit) =>
+              navigation.navigate('Clientes', {
+                screen: 'ClienteDetalhe',
+                params: { clientId: visit.clientId },
+              })
+            }
           />
         </View>
       ) : null}

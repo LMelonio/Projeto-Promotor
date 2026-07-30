@@ -1,9 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import { ClientesStackNavigator } from './ClientesStackNavigator';
 import { ElevatedTabButton } from './ElevatedTabButton';
 import type { MainTabParamList } from './types';
-import { ClientesScreen } from '@/screens/clientes/ClientesScreen';
 import { HistoricoScreen } from '@/screens/historico/HistoricoScreen';
 import { HomeScreen } from '@/screens/home/HomeScreen';
 import { PerfilScreen } from '@/screens/perfil/PerfilScreen';
@@ -40,7 +40,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Clientes"
-        component={ClientesScreen}
+        component={ClientesStackNavigator}
         options={{
           title: 'Clientes',
           tabBarIcon: ({ color, size }) => <Feather name="users" color={color} size={size} />,

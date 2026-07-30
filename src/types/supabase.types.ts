@@ -56,7 +56,20 @@ export interface Database {
           scheduled_time: string | null;
           status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
           checked_in_at: string | null;
+          /**
+           * Assumido para a Fase 2 (check-in georreferenciado) — ainda não
+           * confirmado contra as migrations reais. Reconciliar junto da
+           * regeneração de tipos (ver aviso no topo deste arquivo).
+           */
+          checked_in_latitude: number | null;
+          checked_in_longitude: number | null;
           checked_out_at: string | null;
+        };
+        Update: {
+          status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+          checked_in_at?: string | null;
+          checked_in_latitude?: number | null;
+          checked_in_longitude?: number | null;
         };
       };
     };

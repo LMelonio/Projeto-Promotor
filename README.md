@@ -18,20 +18,21 @@ Este repositório é o código-fonte real do app — não é mais protótipo/wir
 
 Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 
-## Estado atual (Fase 1 de N)
+## Estado atual (Fase 2 de N)
 
 ✅ Implementado e testado:
 - Configuração completa do projeto (TS, lint, Tailwind, Jest, Expo config com permissões)
 - Design System tipado (`src/theme`) espelhando os tokens aprovados
-- Camada de dados: cliente Supabase seguro, `AuthRepository`, `DashboardRepository`
-- Navegação completa (Auth ↔ Main, 5 abas, botão central elevado "Visita")
+- Camada de dados: cliente Supabase seguro, `AuthRepository`, `DashboardRepository`, `ClientRepository`
+- Navegação completa (Auth ↔ Main, 5 abas, botão central elevado "Visita"), incluindo stack aninhada da aba Clientes
 - Tela de **Login** (biometria + e-mail/senha)
 - Tela de **Home/Dashboard** (saudação, próxima visita, KPIs, roteiro do dia)
-- Telas placeholder (Clientes, Visita, Histórico, Perfil) já navegáveis
+- Tela de **Clientes/Roteiro** (busca por nome/código ERP + filtros: Roteiro do dia, Adimplentes, Inadimplentes)
+- Tela de **Detalhe do Cliente** + início do **Check-in georreferenciado** (captura de GPS ao vivo via `useLocation`, nunca posição em cache)
+- Telas placeholder (Visita, Histórico, Perfil) já navegáveis
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint
 
 ⏭️ Não implementado ainda (próximas fases, ver `docs/ARCHITECTURE.md`):
-- Fase 2 — Clientes/Roteiro + Detalhe do Cliente/Check-in
 - Fase 3 — Atividades/Questionário + Fotos + Ruptura
 - Fase 4 — Check-out + Histórico + Perfil completo + fila de sincronização offline
 

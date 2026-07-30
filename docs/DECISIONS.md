@@ -48,3 +48,26 @@ Ver justificativa detalhada em `docs/ARCHITECTURE.md`, seção "Gerenciamento de
 ### 8. Fotos obrigatórias: câmera direta, não seleção de galeria (decisão para a Fase 3, registrada aqui por já ter sido levantada)
 
 Ainda não implementado nesta fase, mas já decidido para não esquecer: as fotos de Atividades/Ruptura devem ser capturadas via `expo-camera` (captura ao vivo), não via `expo-image-picker` com acesso à galeria. Motivo: a integridade do dado enviado ao BI depende de a foto ser da visita real, não uma imagem qualquer selecionada depois — mesma preocupação de qualidade de dado já registrada nas decisões de produto anteriores do projeto.
+
+---
+
+## Decisões Técnicas — Fase 2
+
+### 9. "Carteira de clientes" derivada de `visits`, sem tabela de atribuição própria
+
+**Escolhido**: `ClientRepository.listPortfolio` busca todo cliente com pelo menos uma visita (passada ou futura) registrada para o promotor autenticado, na tabela `visits` — mesmo padrão já usado em `DashboardRepository.getTodayRoute`.
+**Alternativa considerada**: uma tabela explícita `promoter_clients` (atribuição fixa de carteira).
+**Motivo**: nenhuma migration conhecida até agora expõe essa tabela — inventar seu nome/formato repetiria o erro que a decisão nº 7 já evita para `supabase.types.ts`. Como `visits` já carrega o vínculo promotor↔cliente (usado desde a Fase 1 na Home), reaproveitá-lo é a opção que não exige adivinhar schema novo.
+**Ação futura**: se as migrations reais tiverem uma tabela de atribuição fixa (carteira independente de visita já ter ocorrido), revisar `listPortfolio` para consultá-la diretamente — hoje um cliente sem nenhuma visita agendada nunca aparece na lista.
+
+### 10. Colunas `checked_in_latitude`/`checked_in_longitude` em `visits` — assumidas, não confirmadas
+
+**Contexto**: o check-in georreferenciado (Fase 2) precisa persistir a coordenada capturada no momento do toque, e a tabela `visits` só tinha, no tipo manual herdado da Fase 1, `checked_in_at`.
+**Escolhido**: adicionar `checked_in_latitude`/`checked_in_longitude` (nullable) ao tipo manual de `visits` em `src/types/supabase.types.ts`, marcadas com comentário de "assumido, reconciliar ao gerar tipos reais" — mesmo espírito da decisão nº 7.
+**Ação futura**: ao rodar `npm run gen:types`, confirmar se as migrations reais usam esses nomes (ou, por exemplo, um único campo `geography`/PostGIS) e ajustar `ClientRepository.checkIn` de acordo.
+
+### 11. Check-in sem visita agendada para hoje: bloqueado, não criado ad-hoc
+
+**Escolhido**: a tela de Detalhe do Cliente só oferece "Iniciar check-in" quando já existe uma visita com `status = 'scheduled'` para o cliente na data de hoje. Sem visita, mostra apenas "Nenhuma visita agendada para hoje com este cliente." — não cria uma visita nova on-the-fly.
+**Motivo**: criar uma visita ad-hoc é uma decisão de produto (mudaria o roteiro planejado, afetaria KPIs de aderência ao roteiro) que não foi pedida para esta fase — o escopo aprovado é "início do Check-in" sobre visitas já existentes. Melhor deixar explícito e bloqueado do que inventar um comportamento novo sem validação.
+**Ação futura**: se o produto decidir permitir visita não planejada, tratar como uma feature nova (com sua própria tela/confirmação), não como uma alteração silenciosa deste fluxo.
