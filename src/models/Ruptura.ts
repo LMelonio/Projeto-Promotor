@@ -16,4 +16,10 @@ export interface NewRupturaInput {
   productName: string;
   supplier: string;
   quantityMissing: number;
+  /**
+   * Capturado no momento em que o promotor registra a ruptura (não no
+   * repositório) — se a ação for enfileirada offline (Fase 4), o horário
+   * sincronizado depois precisa refletir quando ela realmente aconteceu.
+   */
+  reportedAt: string;
 }

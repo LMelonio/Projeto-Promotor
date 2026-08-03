@@ -16,7 +16,9 @@ class ClientRepository implements IClientRepository {
     const { data: visits, error } = await supabase
       .schema('lynkz')
       .from('visits')
-      .select('id, client_id, scheduled_date, scheduled_time, status, checked_in_at')
+      .select(
+        'id, client_id, scheduled_date, scheduled_time, status, checked_in_at, checked_out_at',
+      )
       .eq('promoter_id', promoterId)
       .order('scheduled_date', { ascending: false });
 
@@ -53,6 +55,7 @@ class ClientRepository implements IClientRepository {
           scheduledTime: visit.scheduled_time,
           status: visit.status as VisitStatus,
           checkedInAt: visit.checked_in_at,
+          checkedOutAt: visit.checked_out_at,
         });
       }
     }
@@ -102,7 +105,7 @@ class ClientRepository implements IClientRepository {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('visits')
-      .select('id, scheduled_time, status, checked_in_at')
+      .select('id, scheduled_time, status, checked_in_at, checked_out_at')
       .eq('promoter_id', promoterId)
       .eq('client_id', clientId)
       .eq('scheduled_date', today)
@@ -115,16 +118,21 @@ class ClientRepository implements IClientRepository {
       scheduledTime: data.scheduled_time,
       status: data.status as VisitStatus,
       checkedInAt: data.checked_in_at,
+      checkedOutAt: data.checked_out_at,
     };
   }
 
-  async checkIn(visitId: string, coords: { latitude: number; longitude: number }): Promise<void> {
+  async checkIn(
+    visitId: string,
+    coords: { latitude: number; longitude: number },
+    occurredAt: string,
+  ): Promise<void> {
     const { error } = await supabase
       .schema('lynkz')
       .from('visits')
       .update({
         status: 'in_progress',
-        checked_in_at: new Date().toISOString(),
+        checked_in_at: occurredAt,
         checked_in_latitude: coords.latitude,
         checked_in_longitude: coords.longitude,
       })
@@ -132,6 +140,27 @@ class ClientRepository implements IClientRepository {
 
     if (error) {
       throw new Error('Não foi possível registrar o check-in agora. Tente novamente.');
+    }
+  }
+
+  async checkOut(
+    visitId: string,
+    coords: { latitude: number; longitude: number },
+    occurredAt: string,
+  ): Promise<void> {
+    const { error } = await supabase
+      .schema('lynkz')
+      .from('visits')
+      .update({
+        status: 'completed',
+        checked_out_at: occurredAt,
+        checked_out_latitude: coords.latitude,
+        checked_out_longitude: coords.longitude,
+      })
+      .eq('id', visitId);
+
+    if (error) {
+      throw new Error('Não foi possível registrar o check-out agora. Tente novamente.');
     }
   }
 

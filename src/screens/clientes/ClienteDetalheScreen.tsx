@@ -16,8 +16,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { VisitStatus } from '@/models/Client';
-import type { ClientesStackParamList } from '@/navigation/types';
+import type { ClientesStackParamList, MainTabParamList } from '@/navigation/types';
 import { useLocation } from '@/shared/hooks/useLocation';
+import { formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
 import { distanceKm, formatDistance } from '@/shared/utils/geo';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
@@ -175,8 +176,29 @@ export function ClienteDetalheScreen() {
                     Distância registrada até o cliente: {formatDistance(checkInDistanceKm)}
                   </Text>
                 ) : null}
+                <Button
+                  label="Ir para Visita"
+                  variant="ghost"
+                  icon={<Feather name="clipboard" size={16} color={colors.ink} />}
+                  onPress={() =>
+                    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Visita')
+                  }
+                />
+              </View>
+            ) : null}
+
+            {visit.status === 'completed' && visit.checkedInAt && visit.checkedOutAt ? (
+              <View className="gap-1">
+                <Text className="text-success text-sm font-semibold">
+                  Visita concluída às{' '}
+                  {new Date(visit.checkedOutAt).toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
                 <Text className="text-ink-muted text-xs">
-                  Check-out disponível na próxima fase.
+                  Duração:{' '}
+                  {formatDurationMinutes(minutesBetween(visit.checkedInAt, visit.checkedOutAt))}
                 </Text>
               </View>
             ) : null}

@@ -64,12 +64,18 @@ export interface Database {
           checked_in_latitude: number | null;
           checked_in_longitude: number | null;
           checked_out_at: string | null;
+          /** Assumido junto do check-out georreferenciado (Fase 4) — mesmo aviso acima. */
+          checked_out_latitude: number | null;
+          checked_out_longitude: number | null;
         };
         Update: {
           status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
           checked_in_at?: string | null;
           checked_in_latitude?: number | null;
           checked_in_longitude?: number | null;
+          checked_out_at?: string | null;
+          checked_out_latitude?: number | null;
+          checked_out_longitude?: number | null;
         };
       };
       /**

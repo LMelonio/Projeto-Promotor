@@ -2,7 +2,9 @@ import {
   daysAgoLabel,
   elapsedLabel,
   formatCurrencyBRL,
+  formatDurationMinutes,
   formatPercentage,
+  minutesBetween,
 } from '@/shared/utils/date';
 
 describe('shared/utils/date', () => {
@@ -54,6 +56,34 @@ describe('shared/utils/date', () => {
     it('formata horas e minutos combinados', () => {
       const inicio = new Date(Date.now() - (90 * 60_000 + 5_000)).toISOString();
       expect(elapsedLabel(inicio)).toBe('há 1h 30min');
+    });
+  });
+
+  describe('minutesBetween', () => {
+    it('calcula minutos inteiros entre dois instantes ISO', () => {
+      const inicio = '2026-01-01T10:00:00.000Z';
+      const fim = '2026-01-01T10:45:00.000Z';
+      expect(minutesBetween(inicio, fim)).toBe(45);
+    });
+
+    it('nunca retorna valor negativo (fim antes do início)', () => {
+      const inicio = '2026-01-01T10:45:00.000Z';
+      const fim = '2026-01-01T10:00:00.000Z';
+      expect(minutesBetween(inicio, fim)).toBe(0);
+    });
+  });
+
+  describe('formatDurationMinutes', () => {
+    it('formata minutos quando o total é menor que 1 hora', () => {
+      expect(formatDurationMinutes(45)).toBe('45 min');
+    });
+
+    it('formata horas cheias sem minutos', () => {
+      expect(formatDurationMinutes(120)).toBe('2h');
+    });
+
+    it('formata horas e minutos combinados', () => {
+      expect(formatDurationMinutes(90)).toBe('1h 30min');
     });
   });
 });

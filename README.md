@@ -18,23 +18,26 @@ Este repositório é o código-fonte real do app — não é mais protótipo/wir
 
 Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 
-## Estado atual (Fase 3 de N)
+## Estado atual (Fase 4 de N)
 
 ✅ Implementado e testado:
 - Configuração completa do projeto (TS, lint, Tailwind, Jest, Expo config com permissões)
 - Design System tipado (`src/theme`) espelhando os tokens aprovados
-- Camada de dados: cliente Supabase seguro, `AuthRepository`, `DashboardRepository`, `ClientRepository`, `VisitRepository`
+- Camada de dados: cliente Supabase seguro, `AuthRepository`, `DashboardRepository`, `ClientRepository`, `VisitRepository`, `HistoryRepository`
 - Navegação completa (Auth ↔ Main, 5 abas, botão central elevado "Visita"), incluindo stacks aninhadas das abas Clientes e Visita
 - Tela de **Login** (biometria + e-mail/senha)
 - Tela de **Home/Dashboard** (saudação, próxima visita, KPIs, roteiro do dia)
 - Tela de **Clientes/Roteiro** (busca por nome/código ERP + filtros: Roteiro do dia, Adimplentes, Inadimplentes)
-- Tela de **Detalhe do Cliente** + início do **Check-in georreferenciado** (captura de GPS ao vivo via `useLocation`, nunca posição em cache)
-- **Visita em andamento**: checklist de **Atividades** (6 tipos fixos, foto obrigatória capturada ao vivo via `expo-camera`), **Questionário** da visita (4 perguntas objetivas + observações) e **registro de Ruptura** (falta de produto, restrita à carteira de produtos do promotor)
-- Telas placeholder (Histórico, Perfil) já navegáveis
+- Tela de **Detalhe do Cliente** + **Check-in georreferenciado** (captura de GPS ao vivo via `useLocation`, nunca posição em cache)
+- **Visita em andamento**: checklist de **Atividades** (6 tipos fixos, foto obrigatória capturada ao vivo via `expo-camera`), **Questionário** da visita (4 perguntas objetivas + observações), **registro de Ruptura** (falta de produto, restrita à carteira de produtos do promotor) e **Check-out georreferenciado** ("Finalizar visita")
+- Tela de **Histórico** de visitas finalizadas (cliente, horário, duração, atividades/fotos)
+- Tela de **Perfil completo** (dados do promotor + status da fila de sincronização + logout)
+- **Fila de sincronização offline** (SQLite + `services/sync`): check-in/check-out/Atividade/Questionário/Ruptura nunca se perdem por falta de sinal — ficam na fila e reenviam sozinhos quando a conexão volta (ou manualmente, pelo Perfil)
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint
 
-⏭️ Não implementado ainda (próxima fase, ver `docs/ARCHITECTURE.md`):
-- Fase 4 — Check-out + Histórico + Perfil completo + fila de sincronização offline (inclui o upload real das fotos de Atividade, hoje mantidas apenas como contagem local — ver `docs/DECISIONS.md`, item 13)
+⏭️ Não implementado ainda (todas as 4 fases planejadas foram concluídas — ver limitações conhecidas abaixo e `docs/DECISIONS.md`):
+- Upload real dos binários das fotos de Atividade para o Supabase Storage (hoje só a contagem é sincronizada — ver `docs/DECISIONS.md`, itens 13 e 14)
+- A lista "Rupturas deste cliente" só reflete um registro feito offline depois que a fila sincronizar de verdade (ver `docs/DECISIONS.md`, item 14)
 
 ## Como rodar
 

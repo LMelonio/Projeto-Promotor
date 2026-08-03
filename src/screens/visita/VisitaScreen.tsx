@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABEL, type ActivityType } from '@/models/Activity';
 import type { MainTabParamList, VisitaStackParamList } from '@/navigation/types';
+import { useCheckOut } from '@/screens/clientes/useClientesData';
+import { useLocation } from '@/shared/hooks/useLocation';
 import { elapsedLabel } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
@@ -39,6 +41,8 @@ export function VisitaScreen() {
   const activities = useActivities(visitId);
   const questionnaire = useQuestionnaire(visitId);
   const registerActivity = useRegisterActivity(visitId);
+  const checkOut = useCheckOut(promoterId, activeVisit.data?.clientId);
+  const { requestLocation, errorMessage: locationError } = useLocation();
 
   const [cameraType, setCameraType] = useState<ActivityType | null>(null);
 
@@ -57,6 +61,15 @@ export function VisitaScreen() {
       type,
       photoCount,
     });
+  }
+
+  async function handleCheckOut() {
+    if (!activeVisit.data) return;
+
+    const coords = await requestLocation();
+    if (!coords) return;
+
+    await checkOut.mutateAsync({ visitId: activeVisit.data.visitId, coords });
   }
 
   if (activeVisit.isLoading) {
@@ -95,14 +108,28 @@ export function VisitaScreen() {
 
   return (
     <ScreenContainer scroll>
-      <View className="mt-4 mb-5">
-        <Text className="text-ink font-extrabold text-xl" numberOfLines={1}>
-          {visit.clientName}
-        </Text>
-        <Text className="text-ink-muted text-sm mt-0.5">
-          Visita em andamento · {elapsedLabel(visit.checkedInAt)}
-        </Text>
+      <View className="flex-row items-start justify-between gap-3 mt-4 mb-5">
+        <View className="flex-1">
+          <Text className="text-ink font-extrabold text-xl" numberOfLines={1}>
+            {visit.clientName}
+          </Text>
+          <Text className="text-ink-muted text-sm mt-0.5">
+            Visita em andamento · {elapsedLabel(visit.checkedInAt)}
+          </Text>
+        </View>
+        <Button
+          label="Finalizar visita"
+          variant="success"
+          loading={checkOut.isPending}
+          onPress={handleCheckOut}
+        />
       </View>
+
+      {checkOut.isError || locationError ? (
+        <Text className="text-danger text-xs mb-3">
+          {locationError ?? 'Não foi possível finalizar a visita agora. Tente novamente.'}
+        </Text>
+      ) : null}
 
       <Text className="text-ink font-bold text-base mb-2">Atividades</Text>
       <Card className="gap-0.5 mb-4">

@@ -32,10 +32,22 @@ export function formatPercentage(rate: number): string {
 /** Formata "há Xmin"/"há Xh Ymin" a partir de um instante ISO — usado na visita em andamento. */
 export function elapsedLabel(startIso: string): string {
   const diffMin = Math.max(0, Math.floor((Date.now() - new Date(startIso).getTime()) / 60_000));
+  return `há ${formatDurationMinutes(diffMin)}`;
+}
 
-  if (diffMin < 60) return `há ${diffMin} min`;
+/** Minutos inteiros entre dois instantes ISO (check-in → check-out) — usado no Histórico. */
+export function minutesBetween(startIso: string, endIso: string): number {
+  return Math.max(
+    0,
+    Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000),
+  );
+}
 
-  const hours = Math.floor(diffMin / 60);
-  const minutes = diffMin % 60;
-  return `há ${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
+/** Formata uma duração em minutos como "Xmin" ou "Xh Ymin" (sem prefixo) — usado no Histórico. */
+export function formatDurationMinutes(totalMinutes: number): string {
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
 }

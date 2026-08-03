@@ -22,6 +22,7 @@ export interface TodayVisit {
   scheduledTime: string | null;
   status: VisitStatus;
   checkedInAt: string | null;
+  checkedOutAt: string | null;
 }
 
 /** Item da carteira de clientes (lista da tela Clientes/Roteiro). */

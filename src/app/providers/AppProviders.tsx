@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useAutoSync } from '@/shared/hooks/useAutoSync';
+
 /**
  * Cliente único do React Query — usado para TODO dado remoto (dashboard,
  * clientes, produtos, histórico...). Configuração pensada para o cenário de
@@ -24,11 +26,19 @@ const queryClient = new QueryClient({
   },
 });
 
+/** Só existe para poder chamar `useAutoSync` (precisa do QueryClient do contexto) antes das telas. */
+function SyncBootstrap({ children }: { children: React.ReactNode }) {
+  useAutoSync();
+  return <>{children}</>;
+}
+
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <SyncBootstrap>{children}</SyncBootstrap>
+        </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -50,7 +50,7 @@ class AuthRepository implements IAuthRepository {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('promoters')
-      .select('id, full_name, email, supplier, status')
+      .select('id, full_name, email, phone, supplier, status')
       .eq('auth_user_id', authUserId)
       .is('deleted_at', null)
       .single();
@@ -66,6 +66,7 @@ class AuthRepository implements IAuthRepository {
       id: data.id,
       fullName: data.full_name,
       email: data.email,
+      phone: data.phone,
       supplier: data.supplier,
       isActive: data.status === 'active',
     };

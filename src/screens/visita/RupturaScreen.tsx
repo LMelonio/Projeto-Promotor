@@ -44,6 +44,7 @@ export function RupturaScreen() {
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('');
+  const [lastOutcome, setLastOutcome] = useState<'synced' | 'queued' | null>(null);
 
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -67,14 +68,16 @@ export function RupturaScreen() {
       return;
     }
 
-    await registerRuptura.mutateAsync({
+    const outcome = await registerRuptura.mutateAsync({
       clientId,
       productId: selectedProduct.id,
       productName: selectedProduct.name,
       supplier: selectedProduct.supplier,
       quantityMissing,
+      reportedAt: new Date().toISOString(),
     });
 
+    setLastOutcome(outcome.synced ? 'synced' : 'queued');
     setSelectedProduct(null);
     setQuantity('');
     setSearch('');
@@ -109,6 +112,21 @@ export function RupturaScreen() {
         />
         <Text className="text-ink font-extrabold text-xl flex-1">Registrar ruptura</Text>
       </View>
+
+      {lastOutcome ? (
+        <View className="flex-row items-center gap-2 mb-4">
+          <Feather
+            name={lastOutcome === 'synced' ? 'check-circle' : 'clock'}
+            size={16}
+            color={lastOutcome === 'synced' ? colors.success : colors.warning}
+          />
+          <Text className="text-ink-muted text-xs flex-1">
+            {lastOutcome === 'synced'
+              ? 'Ruptura registrada com sucesso.'
+              : 'Ruptura registrada — será sincronizada quando a conexão voltar.'}
+          </Text>
+        </View>
+      ) : null}
 
       {selectedProduct ? (
         <Card className="gap-3 mb-4">
@@ -160,7 +178,10 @@ export function RupturaScreen() {
               placeholder="Buscar produto por nome ou código"
               placeholderTextColor={colors.inkMuted}
               value={search}
-              onChangeText={setSearch}
+              onChangeText={(text) => {
+                setSearch(text);
+                setLastOutcome(null);
+              }}
               autoCapitalize="none"
               autoCorrect={false}
             />

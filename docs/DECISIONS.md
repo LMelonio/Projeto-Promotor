@@ -89,3 +89,27 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 **Alternativa considerada**: fazer upload direto para um bucket do Storage a cada foto capturada.
 **Motivo**: `docs/ARCHITECTURE.md` já reserva explicitamente "fila de sincronização offline (SQLite + services/sync)" para a Fase 4, exatamente por causa da rede instável em campo — implementar upload síncrono de imagem agora duplicaria esse esforço e criaria um caminho de falha (visita sem internet) que a Fase 4 é quem deve resolver de verdade. Também exigiria assumir o nome de um bucket de Storage sem confirmação, repetindo o risco da decisão nº 7.
 **Ação futura**: ao implementar a fila de sincronização da Fase 4, incluir o envio dos binários de foto (hoje descartados após a contagem) como parte do mesmo mecanismo.
+
+---
+
+## Decisões Técnicas — Fase 4
+
+### 14. Fila de sincronização offline: retry genérico por "tipo de ação", não por entidade
+
+**Escolhido**: uma única tabela SQLite `sync_queue` (`database/local/db.ts`) guarda `{id, kind, payload, created_at, attempts, last_error}`; `services/sync/syncEngine.ts` mantém um mapa `SYNC_HANDLERS: Record<SyncKind, (payload) => Promise<...>>` com um handler por tipo de escrita (`check_in`, `check_out`, `register_activity`, `submit_questionnaire`, `register_ruptura`). `runOrQueue(kind, payload)` tenta a chamada real primeiro; se falhar por qualquer motivo, enfileira o mesmo payload — não distingue "sem internet" de outros erros de rede, porque em campo esse é o cenário dominante e as validações client-side (coordenadas obtidas, foto ≥ 1, quantidade > 0) já reduzem bastante a chance de um payload inválido chegar até aqui.
+**Alternativa considerada**: uma fila/tabela específica por entidade (ex.: `pending_checkins`, `pending_activities`).
+**Motivo da escolha**: um único mecanismo de retry (mesma tabela, mesmo loop de `flushQueue`) é mais simples de raciocinar e testar do que N filas paralelas, e novos tipos de ação offline só precisam de uma entrada nova em `SYNC_HANDLERS` — não de uma tabela nova.
+**Timestamp de captura, não de sincronização**: `checkIn`/`checkOut` passaram a receber `occurredAt` explícito do chamador (em vez de gerar `new Date()` dentro do Repository) — se a ação ficar enfileirada por horas até haver sinal, o horário gravado no servidor precisa refletir o momento real do check-in/check-out, não o momento em que o app finalmente conseguiu enviar. `registerRuptura` recebeu o mesmo tratamento (`reportedAt` em `NewRupturaInput`).
+**Simplificação aceita conscientemente**: quando uma ação é enfileirada offline, o cache do React Query é corrigido otimisticamente só onde a tela já dependia diretamente daquele estado (checklist de Atividades, badge do Questionário, status da visita em `today-visit`/`active-visit`) — a lista "Rupturas deste cliente" **não** recebe patch otimista, só aparece após sincronizar de verdade (`useRegisterRuptura` em `useVisitaData.ts`). Fazer isso também exigiria inventar um id local e um status "pendente de sincronização" só para essa lista, para um caso de uso secundário (revisão de rupturas já registradas) — não parece valer o custo agora.
+**Ação futura**: os binários das fotos de Atividade (decisão nº 13) **continuam não sincronizados** nesta fase — a fila lida com dados estruturados (JSON), não com arquivos. Adicionar isso exigiria decidir um bucket/caminho de Storage (ainda não confirmado, mesmo risco da decisão nº 7) e uma estratégia de payload maior (base64 em SQLite tem custo de espaço/performance real) — fica registrado como próximo passo, não escondido.
+
+### 15. "Finalizar visita" (check-out) mora na aba Visita, não no Detalhe do Cliente
+
+**Escolhido**: o botão de check-out fica no topo de `VisitaScreen` (o "hub" da visita em andamento desde a Fase 3), não em `ClienteDetalheScreen` — que ganhou só um atalho "Ir para Visita" enquanto a visita está em andamento, e um resumo (horário + duração) quando já concluída.
+**Alternativa considerada**: manter check-in E check-out simétricos, os dois em `ClienteDetalheScreen` (onde o check-in já vive desde a Fase 2).
+**Motivo**: depois que o check-in acontece, o fluxo do promotor migra para a aba Visita (Atividades/Questionário/Ruptura) — pedir para ele voltar para Clientes só para encerrar a visita que está acompanhando na outra aba criaria uma navegação de ida e volta desnecessária. Check-in continua em Detalhe do Cliente porque é o ponto de partida natural (decisão de produto da Fase 2, não revisada aqui).
+
+### 16. Histórico agrega contagem de Atividades/Fotos por consulta separada, não por coluna denormalizada
+
+**Escolhido**: `HistoryRepository.listCompletedVisits` busca `visits` (status `completed`) e depois `activities` filtradas por `visit_id in (...)`, agregando contagem e soma de `photo_count` em memória — não existe (nem foi assumida) uma coluna `quantidade_atividades`/`quantidade_fotos` na tabela `visits`, mesmo a planilha de referência (decisão nº 12) tendo essas colunas em `HistoricoVisitas`.
+**Motivo**: essas colunas, na planilha, parecem ser um resumo pré-calculado (típico de export de BI) — mantê-las como dado derivado (agregado a partir de `activities`, que já existe e é a fonte real) evita um segundo lugar para desincronizar caso uma atividade seja adicionada/editada depois do check-out.

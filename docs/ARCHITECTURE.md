@@ -41,8 +41,8 @@ src/
 ├── services/
 │   ├── supabase/        Cliente único + adaptador de storage seguro
 │   ├── api/              Serviços auxiliares que não são "repositório de entidade" (ex.: lastKnownUser)
-│   └── sync/             (Fase 4) fila de sincronização offline
-├── database/local/       (Fase 4) SQLite local para cache/fila offline
+│   └── sync/             Fila de sincronização offline (Fase 4) — SyncQueue, syncEngine, useSyncStatus
+├── database/local/       SQLite local (Fase 4) — só a fila de sincronização, nenhum outro dado de negócio
 ├── repositories/
 │   ├── interfaces/       Contratos (IAuthRepository, IDashboardRepository, ...)
 │   └── implementations/  Implementações concretas sobre Supabase
@@ -76,6 +76,15 @@ Ao adicionar uma tela de fluxo profundo (ex.: Detalhe do Cliente dentro da aba C
 | 1 | Setup, Design System, Auth, Home | ✅ Concluída |
 | 2 | Clientes/Roteiro + Detalhe do Cliente + início do Check-in | ✅ Concluída |
 | 3 | Atividades/Questionário + Fotos obrigatórias + Ruptura | ✅ Concluída |
-| 4 | Check-out + Histórico + Perfil completo + fila de sincronização offline (SQLite + `services/sync`) | Não iniciada |
+| 4 | Check-out + Histórico + Perfil completo + fila de sincronização offline (SQLite + `services/sync`) | ✅ Concluída |
 
 Cada fase deve seguir o ciclo já acordado: analisar → planejar → validar → implementar → revisar → testar → documentar → prosseguir. Não implementar dezenas de telas de uma vez.
+
+## Fila de sincronização offline (Fase 4)
+
+`database/local/db.ts` abre um SQLite local (`expo-sqlite`) só com a tabela `sync_queue` — nenhum outro dado de negócio é cacheado ali, isso é papel do React Query. `services/sync/syncEngine.ts` centraliza, em `SYNC_HANDLERS`, o "como executar" cada tipo de ação enfileirável (check-in, check-out, Atividade, Questionário, Ruptura) e expõe duas funções:
+
+- `runOrQueue(kind, payload)`: tentativa imediata; se falhar, enfileira o mesmo payload. Usada pelos hooks de mutação (`useCheckIn`, `useCheckOut`, `useRegisterActivity`, `useSubmitQuestionnaire`, `useRegisterRuptura`).
+- `flushQueue()`: reenvia toda a fila pendente, em ordem — chamada automaticamente por `useAutoSync` (montado em `AppProviders`) sempre que a conectividade volta, e manualmente pelo botão "Sincronizar agora" no Perfil (`useSyncStatus`).
+
+Ver `docs/DECISIONS.md`, item 14, para o raciocínio completo (por que uma fila genérica por "tipo", a disciplina de timestamp de captura vs. sincronização, e a simplificação aceita na lista de Rupturas).

@@ -204,8 +204,6 @@ class VisitRepository implements IVisitRepository {
   }
 
   async registerRuptura(input: NewRupturaInput): Promise<Ruptura> {
-    const reportedAt = new Date().toISOString();
-
     const { data, error } = await supabase
       .schema('lynkz')
       .from('rupturas')
@@ -214,7 +212,7 @@ class VisitRepository implements IVisitRepository {
         product_id: input.productId,
         supplier: input.supplier,
         quantity_missing: input.quantityMissing,
-        reported_at: reportedAt,
+        reported_at: input.reportedAt,
         status: 'pending',
       })
       .select('id, status, reported_at')
