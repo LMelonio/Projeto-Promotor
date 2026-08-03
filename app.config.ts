@@ -57,6 +57,9 @@ const config: ExpoConfig = {
           'A localização é usada para confirmar o check-in e check-out no cliente visitado.',
       },
     ],
+    'expo-sqlite',
+    'expo-font',
+    'expo-asset',
   ],
   extra: {
     eas: {
