@@ -61,11 +61,10 @@ const config: ExpoConfig = {
     'expo-font',
     'expo-asset',
   ],
-  extra: {
-    eas: {
-      projectId: 'PREENCHER_APOS_CRIAR_PROJETO_EAS',
-    },
-  },
+  // `extra.eas.projectId` só deve ser adicionado quando houver um projeto EAS
+  // real (`eas init`) — um placeholder aqui faz o Expo Go tentar validar o ID
+  // contra os servidores da EAS ao conectar, o que exige login e quebra o
+  // fluxo de desenvolvimento local sem motivo.
 };
 
 export default config;
