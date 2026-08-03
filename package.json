@@ -16,8 +16,10 @@
     "gen:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema lynkz > src/types/supabase.types.ts"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "~14.0.4",
     "@hookform/resolvers": "^3.9.0",
+    "@opentelemetry/api": "^1.9.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/netinfo": "11.4.1",
     "@react-navigation/bottom-tabs": "^6.6.1",
@@ -42,6 +44,7 @@
     "expo-status-bar": "~2.0.0",
     "nativewind": "4.1.23",
     "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-hook-form": "^7.53.0",
     "react-native": "0.76.9",
     "react-native-gesture-handler": "~2.20.2",
@@ -49,22 +52,23 @@
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
+    "react-native-web": "~0.19.13",
     "zod": "^3.23.8",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "babel-plugin-module-resolver": "^5.0.2",
-    "@types/react": "~18.3.12",
-    "typescript": "^5.6.3",
-    "tailwindcss": "^3.4.13",
-    "jest": "^29.7.0",
-    "@types/jest": "^29.5.13",
-    "jest-expo": "~52.0.0",
     "@testing-library/react-native": "^12.7.2",
+    "@types/jest": "^29.5.13",
+    "@types/react": "~18.3.12",
+    "babel-plugin-module-resolver": "^5.0.2",
     "eslint": "^8.57.0",
     "eslint-config-universe": "^13.0.0",
-    "prettier": "^3.3.3"
+    "jest": "^29.7.0",
+    "jest-expo": "~52.0.0",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3"
   },
   "engines": {
     "node": ">=18"
