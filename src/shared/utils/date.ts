@@ -28,3 +28,14 @@ export function formatCurrencyBRL(value: number): string {
 export function formatPercentage(rate: number): string {
   return `${Math.round(rate * 100)}%`;
 }
+
+/** Formata "há Xmin"/"há Xh Ymin" a partir de um instante ISO — usado na visita em andamento. */
+export function elapsedLabel(startIso: string): string {
+  const diffMin = Math.max(0, Math.floor((Date.now() - new Date(startIso).getTime()) / 60_000));
+
+  if (diffMin < 60) return `há ${diffMin} min`;
+
+  const hours = Math.floor(diffMin / 60);
+  const minutes = diffMin % 60;
+  return `há ${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
+}

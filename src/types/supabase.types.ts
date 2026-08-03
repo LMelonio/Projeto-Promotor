@@ -72,6 +72,100 @@ export interface Database {
           checked_in_longitude?: number | null;
         };
       };
+      /**
+       * Tabelas da Fase 3 (Atividades/Questionário/Ruptura) — assumidas a
+       * partir da planilha funcional de referência encontrada ao lado do
+       * projeto ("Base App Promotor.xlsx", abas Produtos/CarteiraProdutos/
+       * Atividades/Questionarios/Rupturas), ainda não confirmadas contra
+       * migrations reais. Nomes de coluna traduzidos para o padrão em
+       * inglês já usado nas demais tabelas deste arquivo. Reconciliar ao
+       * regenerar tipos (ver aviso no topo deste arquivo) — ver também
+       * `docs/DECISIONS.md`, item 12.
+       */
+      products: {
+        Row: {
+          id: string;
+          internal_code: string;
+          ean_code: string;
+          supplier: string;
+          name: string;
+          category: string;
+          is_active: boolean;
+        };
+      };
+      promoter_products: {
+        Row: {
+          promoter_id: string;
+          product_id: string;
+          status: 'available' | 'unavailable';
+        };
+      };
+      activities: {
+        Row: {
+          id: string;
+          visit_id: string;
+          client_id: string;
+          promoter_id: string;
+          type: string;
+          status: 'pending' | 'completed';
+          photo_count: number;
+          notes: string | null;
+        };
+        Insert: {
+          visit_id: string;
+          client_id: string;
+          promoter_id: string;
+          type: string;
+          status: 'pending' | 'completed';
+          photo_count: number;
+          notes?: string | null;
+        };
+      };
+      questionnaires: {
+        Row: {
+          id: string;
+          visit_id: string;
+          product_exposed: boolean;
+          merchandising_material: boolean;
+          price_updated: boolean;
+          needs_restocking: boolean;
+          notes: string | null;
+        };
+        Insert: {
+          visit_id: string;
+          product_exposed: boolean;
+          merchandising_material: boolean;
+          price_updated: boolean;
+          needs_restocking: boolean;
+          notes?: string | null;
+        };
+        Update: {
+          product_exposed?: boolean;
+          merchandising_material?: boolean;
+          price_updated?: boolean;
+          needs_restocking?: boolean;
+          notes?: string | null;
+        };
+      };
+      rupturas: {
+        Row: {
+          id: string;
+          client_id: string;
+          product_id: string;
+          supplier: string;
+          quantity_missing: number;
+          reported_at: string;
+          status: 'pending' | 'resolved';
+        };
+        Insert: {
+          client_id: string;
+          product_id: string;
+          supplier: string;
+          quantity_missing: number;
+          reported_at: string;
+          status: 'pending' | 'resolved';
+        };
+      };
     };
     Views: {
       /**

@@ -3,11 +3,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { ClientesStackNavigator } from './ClientesStackNavigator';
 import { ElevatedTabButton } from './ElevatedTabButton';
+import { VisitaStackNavigator } from './VisitaStackNavigator';
 import type { MainTabParamList } from './types';
 import { HistoricoScreen } from '@/screens/historico/HistoricoScreen';
 import { HomeScreen } from '@/screens/home/HomeScreen';
 import { PerfilScreen } from '@/screens/perfil/PerfilScreen';
-import { VisitaScreen } from '@/screens/visita/VisitaScreen';
 import { colors } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -48,7 +48,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Visita"
-        component={VisitaScreen}
+        component={VisitaStackNavigator}
         options={{
           title: '',
           tabBarButton: (props) => <ElevatedTabButton onPress={props.onPress ?? undefined} />,

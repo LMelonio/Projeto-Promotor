@@ -1,4 +1,9 @@
-import { daysAgoLabel, formatCurrencyBRL, formatPercentage } from '@/shared/utils/date';
+import {
+  daysAgoLabel,
+  elapsedLabel,
+  formatCurrencyBRL,
+  formatPercentage,
+} from '@/shared/utils/date';
 
 describe('shared/utils/date', () => {
   describe('daysAgoLabel', () => {
@@ -32,6 +37,23 @@ describe('shared/utils/date', () => {
       expect(formatPercentage(0.42)).toBe('42%');
       expect(formatPercentage(1)).toBe('100%');
       expect(formatPercentage(0)).toBe('0%');
+    });
+  });
+
+  describe('elapsedLabel', () => {
+    it('formata minutos quando o total é menor que 1 hora', () => {
+      const inicio = new Date(Date.now() - 25 * 60_000).toISOString();
+      expect(elapsedLabel(inicio)).toBe('há 25 min');
+    });
+
+    it('formata horas cheias sem minutos', () => {
+      const inicio = new Date(Date.now() - 2 * 60 * 60_000).toISOString();
+      expect(elapsedLabel(inicio)).toBe('há 2h');
+    });
+
+    it('formata horas e minutos combinados', () => {
+      const inicio = new Date(Date.now() - (90 * 60_000 + 5_000)).toISOString();
+      expect(elapsedLabel(inicio)).toBe('há 1h 30min');
     });
   });
 });

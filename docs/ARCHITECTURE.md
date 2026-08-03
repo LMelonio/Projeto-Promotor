@@ -67,7 +67,7 @@ src/
 - `AuthNavigator`: stack simples (hoje só Login).
 - `MainTabNavigator`: bottom tabs fixas com 5 itens (decisão de produto travada — não é dado dinâmico). O item central "Visita" usa `tabBarButton` customizado (`ElevatedTabButton`) para o efeito de botão elevado do Design System.
 
-Ao adicionar uma tela de fluxo profundo (ex.: Detalhe do Cliente dentro da aba Clientes), o padrão recomendado é criar uma stack aninhada dentro da tab — já aplicado na Fase 2 via `ClientesStackNavigator` (`ClientesList` → `ClienteDetalhe`).
+Ao adicionar uma tela de fluxo profundo (ex.: Detalhe do Cliente dentro da aba Clientes), o padrão recomendado é criar uma stack aninhada dentro da tab — já aplicado na Fase 2 via `ClientesStackNavigator` (`ClientesList` → `ClienteDetalhe`) e na Fase 3 via `VisitaStackNavigator` (`VisitaAtiva` → `Questionario` / `Ruptura`).
 
 ## Fases planejadas (não implementar tudo de uma vez)
 
@@ -75,7 +75,7 @@ Ao adicionar uma tela de fluxo profundo (ex.: Detalhe do Cliente dentro da aba C
 |---|---|---|
 | 1 | Setup, Design System, Auth, Home | ✅ Concluída |
 | 2 | Clientes/Roteiro + Detalhe do Cliente + início do Check-in | ✅ Concluída |
-| 3 | Atividades/Questionário + Fotos obrigatórias + Ruptura | Não iniciada |
+| 3 | Atividades/Questionário + Fotos obrigatórias + Ruptura | ✅ Concluída |
 | 4 | Check-out + Histórico + Perfil completo + fila de sincronização offline (SQLite + `services/sync`) | Não iniciada |
 
 Cada fase deve seguir o ciclo já acordado: analisar → planejar → validar → implementar → revisar → testar → documentar → prosseguir. Não implementar dezenas de telas de uma vez.

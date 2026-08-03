@@ -18,23 +18,23 @@ Este repositório é o código-fonte real do app — não é mais protótipo/wir
 
 Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 
-## Estado atual (Fase 2 de N)
+## Estado atual (Fase 3 de N)
 
 ✅ Implementado e testado:
 - Configuração completa do projeto (TS, lint, Tailwind, Jest, Expo config com permissões)
 - Design System tipado (`src/theme`) espelhando os tokens aprovados
-- Camada de dados: cliente Supabase seguro, `AuthRepository`, `DashboardRepository`, `ClientRepository`
-- Navegação completa (Auth ↔ Main, 5 abas, botão central elevado "Visita"), incluindo stack aninhada da aba Clientes
+- Camada de dados: cliente Supabase seguro, `AuthRepository`, `DashboardRepository`, `ClientRepository`, `VisitRepository`
+- Navegação completa (Auth ↔ Main, 5 abas, botão central elevado "Visita"), incluindo stacks aninhadas das abas Clientes e Visita
 - Tela de **Login** (biometria + e-mail/senha)
 - Tela de **Home/Dashboard** (saudação, próxima visita, KPIs, roteiro do dia)
 - Tela de **Clientes/Roteiro** (busca por nome/código ERP + filtros: Roteiro do dia, Adimplentes, Inadimplentes)
 - Tela de **Detalhe do Cliente** + início do **Check-in georreferenciado** (captura de GPS ao vivo via `useLocation`, nunca posição em cache)
-- Telas placeholder (Visita, Histórico, Perfil) já navegáveis
+- **Visita em andamento**: checklist de **Atividades** (6 tipos fixos, foto obrigatória capturada ao vivo via `expo-camera`), **Questionário** da visita (4 perguntas objetivas + observações) e **registro de Ruptura** (falta de produto, restrita à carteira de produtos do promotor)
+- Telas placeholder (Histórico, Perfil) já navegáveis
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint
 
-⏭️ Não implementado ainda (próximas fases, ver `docs/ARCHITECTURE.md`):
-- Fase 3 — Atividades/Questionário + Fotos + Ruptura
-- Fase 4 — Check-out + Histórico + Perfil completo + fila de sincronização offline
+⏭️ Não implementado ainda (próxima fase, ver `docs/ARCHITECTURE.md`):
+- Fase 4 — Check-out + Histórico + Perfil completo + fila de sincronização offline (inclui o upload real das fotos de Atividade, hoje mantidas apenas como contagem local — ver `docs/DECISIONS.md`, item 13)
 
 ## Como rodar
 

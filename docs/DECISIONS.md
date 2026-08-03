@@ -71,3 +71,21 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 **Escolhido**: a tela de Detalhe do Cliente só oferece "Iniciar check-in" quando já existe uma visita com `status = 'scheduled'` para o cliente na data de hoje. Sem visita, mostra apenas "Nenhuma visita agendada para hoje com este cliente." — não cria uma visita nova on-the-fly.
 **Motivo**: criar uma visita ad-hoc é uma decisão de produto (mudaria o roteiro planejado, afetaria KPIs de aderência ao roteiro) que não foi pedida para esta fase — o escopo aprovado é "início do Check-in" sobre visitas já existentes. Melhor deixar explícito e bloqueado do que inventar um comportamento novo sem validação.
 **Ação futura**: se o produto decidir permitir visita não planejada, tratar como uma feature nova (com sua própria tela/confirmação), não como uma alteração silenciosa deste fluxo.
+
+---
+
+## Decisões Técnicas — Fase 3
+
+### 12. Schema de Atividades/Questionário/Ruptura baseado em `Base App Promotor.xlsx`, não adivinhado
+
+**Contexto**: ao contrário das Fases 1 e 2 (onde não havia nenhuma fonte confiável para os nomes de tabela/coluna, ver decisão nº 7), foi localizada ao lado do projeto (`Desktop/Projeto Promotor/Base App Promotor.xlsx`, fora deste repositório Git) uma planilha funcional com abas `Produtos`, `CarteiraProdutos`, `Atividades`, `Questionarios` e `Rupturas` — dados de exemplo com as colunas exatas do domínio que esta fase precisa modelar.
+**Escolhido**: usar essa planilha como fonte de verdade para **quais campos existem e seu significado de negócio** (ex.: `Atividades` tem `Tipo_Atividade`, `Status`, `Quantidade_Fotos`, `Observacoes`; `Rupturas` não tem `Visita_ID` nem `Promotor_ID` — é uma falta de produto associada só a Cliente+Produto). Os nomes de coluna em `src/types/supabase.types.ts`, porém, continuam traduzidos para o padrão inglês/snake_case já usado nas tabelas de Fases anteriores (`activities`, `questionnaires`, `rupturas`, `products`, `promoter_products`), e os enums (`ActivityType`, `RupturaStatus`) usam chaves em inglês com label em português na UI — mesmo padrão de `FinancialStatus`/`VisitStatus`, para manter o código internamente consistente em vez de misturar convenções.
+**Catálogo fixo assumido**: os seis tipos de atividade (`Instalação de materiais`, `Treinamento`, `Organização de gôndola`, `Precificação`, `Ação promocional`, `Reposição`) e os dois status de ruptura (`Pendente`/`Resolvida`) vêm direto dos valores distintos observados na planilha. Já `ActivityStatus` inclui `pending`, que não aparece nos dados de exemplo (toda atividade amostrada já está `Concluída`) — assumido por simetria com o fluxo de check-in.
+**Ação futura**: mesmo aviso da decisão nº 7 — reconciliar contra migrations reais ao rodar `npm run gen:types`. Além disso, essa planilha revelou uma tabela `CarteiraClientes` (Promotor_ID/Cliente_ID/Status) que parece ser exatamente a "tabela de atribuição fixa de carteira" que a decisão nº 9 (Fase 2) já previa como possível — vale revisitar `ClientRepository.listPortfolio` num ciclo futuro à luz disso.
+
+### 13. Fotos de Atividade ficam só no dispositivo nesta fase — upload real entra com a fila de sincronização (Fase 4)
+
+**Escolhido**: `ActivityCameraModal` captura as fotos ao vivo (decisão nº 8) e a tela registra apenas a **contagem** (`photo_count`) junto da atividade — os binários não são enviados ao Supabase Storage nesta fase.
+**Alternativa considerada**: fazer upload direto para um bucket do Storage a cada foto capturada.
+**Motivo**: `docs/ARCHITECTURE.md` já reserva explicitamente "fila de sincronização offline (SQLite + services/sync)" para a Fase 4, exatamente por causa da rede instável em campo — implementar upload síncrono de imagem agora duplicaria esse esforço e criaria um caminho de falha (visita sem internet) que a Fase 4 é quem deve resolver de verdade. Também exigiria assumir o nome de um bucket de Storage sem confirmação, repetindo o risco da decisão nº 7.
+**Ação futura**: ao implementar a fila de sincronização da Fase 4, incluir o envio dos binários de foto (hoje descartados após a contagem) como parte do mesmo mecanismo.

@@ -20,10 +20,22 @@ export type ClientesStackParamList = {
   ClienteDetalhe: { clientId: string };
 };
 
+/**
+ * Stack aninhada dentro da aba "Visita" (Fase 3): checklist de Atividades da
+ * visita em andamento → Questionário / Ruptura. Ambas as sub-telas derivam a
+ * visita ativa de novo via `useActiveVisit` (mesmo dado, já em cache), então
+ * não recebem parâmetros de rota.
+ */
+export type VisitaStackParamList = {
+  VisitaAtiva: undefined;
+  Questionario: undefined;
+  Ruptura: undefined;
+};
+
 export type MainTabParamList = {
   Inicio: undefined;
   Clientes: NavigatorScreenParams<ClientesStackParamList> | undefined;
-  Visita: undefined;
+  Visita: NavigatorScreenParams<VisitaStackParamList> | undefined;
   Historico: undefined;
   Perfil: undefined;
 };
