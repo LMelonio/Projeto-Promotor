@@ -1,4 +1,6 @@
+import { fakeAuthRepository } from '../fakes/FakeAuthRepository';
 import type { AuthSession, IAuthRepository } from '../interfaces/IAuthRepository';
+import { useMockData } from '@/config/env';
 import type { Promoter } from '@/models/Promoter';
 import { supabase } from '@/services/supabase/client';
 
@@ -89,4 +91,11 @@ class AuthRepository implements IAuthRepository {
   }
 }
 
-export const authRepository = new AuthRepository();
+/**
+ * Modo mock (ver `docs/DECISIONS.md`, item 17): sem `.env` configurado, usa
+ * `FakeAuthRepository` em vez da implementação real — nenhuma tela precisa
+ * saber disso, já que ambas satisfazem `IAuthRepository`.
+ */
+export const authRepository: IAuthRepository = useMockData
+  ? fakeAuthRepository
+  : new AuthRepository();

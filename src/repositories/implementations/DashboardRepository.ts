@@ -1,4 +1,6 @@
+import { fakeDashboardRepository } from '../fakes/FakeDashboardRepository';
 import type { IDashboardRepository } from '../interfaces/IDashboardRepository';
+import { useMockData } from '@/config/env';
 import type { DashboardSummary, NextVisit, RouteItem } from '@/models/DashboardSummary';
 import { supabase } from '@/services/supabase/client';
 
@@ -100,4 +102,7 @@ class DashboardRepository implements IDashboardRepository {
   }
 }
 
-export const dashboardRepository = new DashboardRepository();
+/** Modo mock (ver `docs/DECISIONS.md`, item 17): ver mesmo padrão em `AuthRepository.ts`. */
+export const dashboardRepository: IDashboardRepository = useMockData
+  ? fakeDashboardRepository
+  : new DashboardRepository();

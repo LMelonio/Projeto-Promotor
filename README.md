@@ -43,9 +43,12 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 
 ```bash
 npm install
-cp .env.example .env   # preencher com as credenciais do projeto Supabase
 npm start               # abre o Metro Bundler / Expo Go
 ```
+
+**Ainda não tem um projeto Supabase?** Sem problema — sem o arquivo `.env`, o app sobe automaticamente em **modo mock** (dados fictícios em memória, ver `docs/DECISIONS.md` item 17): login aceita qualquer e-mail/senha e todas as telas mostram dados de exemplo. Assim que tiver um projeto Supabase real, rode `cp .env.example .env` e preencha as credenciais — o app volta a usar dados reais automaticamente, nenhum código muda.
+
+Também é possível abrir um preview no navegador com `npm run web` (útil para ver rapidamente telas/navegação — câmera, GPS e biometria não funcionam em navegador, só em Expo Go/dispositivo real).
 
 Scripts úteis:
 
@@ -53,6 +56,7 @@ Scripts úteis:
 npm run typecheck   # tsc --noEmit
 npm run lint         # eslint
 npm test             # jest
+npm run web          # preview no navegador
 npm run gen:types    # regenera src/types/supabase.types.ts a partir do Supabase real
 ```
 

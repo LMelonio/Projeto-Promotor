@@ -1,4 +1,6 @@
+import { fakeClientRepository } from '../fakes/FakeClientRepository';
 import type { IClientRepository } from '../interfaces/IClientRepository';
+import { useMockData } from '@/config/env';
 import type { Client, ClientListItem, TodayVisit, VisitStatus } from '@/models/Client';
 import { supabase } from '@/services/supabase/client';
 
@@ -171,4 +173,7 @@ class ClientRepository implements IClientRepository {
   }
 }
 
-export const clientRepository = new ClientRepository();
+/** Modo mock (ver `docs/DECISIONS.md`, item 17): ver mesmo padrão em `AuthRepository.ts`. */
+export const clientRepository: IClientRepository = useMockData
+  ? fakeClientRepository
+  : new ClientRepository();

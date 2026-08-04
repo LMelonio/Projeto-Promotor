@@ -1,6 +1,7 @@
 import NetInfo from '@react-native-community/netinfo';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import { flushQueue } from '@/services/sync/syncEngine';
 
@@ -10,11 +11,16 @@ import { flushQueue } from '@/services/sync/syncEngine';
  * `refetchOnReconnect` já usado no React Query (`AppProviders`), mas para as
  * escritas enfileiradas em SQLite, que o React Query não sabe gerenciar.
  * Montado uma única vez, no topo do app (`AppProviders`).
+ *
+ * Sem efeito em web: a fila depende de `expo-sqlite`, que não tem binding
+ * nativo nessa plataforma (ver `database/local/db.ts`).
  */
 export function useAutoSync() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (Platform.OS === 'web') return;
+
     let previouslyConnected: boolean | null = null;
 
     async function trySync() {

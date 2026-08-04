@@ -1,4 +1,6 @@
+import { fakeHistoryRepository } from '../fakes/FakeHistoryRepository';
 import type { IHistoryRepository } from '../interfaces/IHistoryRepository';
+import { useMockData } from '@/config/env';
 import type { VisitHistoryEntry } from '@/models/VisitHistoryEntry';
 import { supabase } from '@/services/supabase/client';
 import { minutesBetween } from '@/shared/utils/date';
@@ -66,4 +68,7 @@ class HistoryRepository implements IHistoryRepository {
   }
 }
 
-export const historyRepository = new HistoryRepository();
+/** Modo mock (ver `docs/DECISIONS.md`, item 17): ver mesmo padrão em `AuthRepository.ts`. */
+export const historyRepository: IHistoryRepository = useMockData
+  ? fakeHistoryRepository
+  : new HistoryRepository();

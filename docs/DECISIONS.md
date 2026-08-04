@@ -113,3 +113,30 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 
 **Escolhido**: `HistoryRepository.listCompletedVisits` busca `visits` (status `completed`) e depois `activities` filtradas por `visit_id in (...)`, agregando contagem e soma de `photo_count` em memória — não existe (nem foi assumida) uma coluna `quantidade_atividades`/`quantidade_fotos` na tabela `visits`, mesmo a planilha de referência (decisão nº 12) tendo essas colunas em `HistoricoVisitas`.
 **Motivo**: essas colunas, na planilha, parecem ser um resumo pré-calculado (típico de export de BI) — mantê-las como dado derivado (agregado a partir de `activities`, que já existe e é a fonte real) evita um segundo lugar para desincronizar caso uma atividade seja adicionada/editada depois do check-out.
+
+---
+
+## Decisões — testar o app de verdade pela primeira vez
+
+Até aqui, "validação" significava `typecheck`/`lint`/`test`. Nenhum deles exercita o Metro bundler nem um dispositivo/navegador real — então vários problemas reais só apareceram quando o app foi de fato executado (Expo Go e depois preview web). Registrados aqui porque nenhum é óbvio a partir do código sozinho.
+
+### 17. Modo mock de dados fictícios (`useMockData` + `repositories/fakes/`)
+
+**Contexto**: o app nunca teve um projeto Supabase real conectado (nenhuma fase anterior teve acesso a isso, e a pasta `lynkz_supabase/migrations/` citada desde a Fase 1 não existe em nenhum lugar acessível). Sem isso, o app não consegue nem inicializar — e criar um projeto Supabase real ficou para uma etapa futura.
+**Escolhido**: se **nenhuma** das duas envs do Supabase estiver definida, `src/config/env.ts` ativa `useMockData = true`, e cada `implementations/*Repository.ts` exporta uma implementação fictícia de `repositories/fakes/` em vez da real — nenhuma tela precisa saber disso, ambas satisfazem a mesma interface (`IAuthRepository`, `IClientRepository` etc., exatamente o benefício que `docs/ARCHITECTURE.md` já previa para essa camada desde a Fase 1). Os dados fictícios (`fakeStore.ts`) reaproveitam nomes/coordenadas da planilha de referência (decisão nº 12) para parecerem realistas, e mutações (check-in, atividade, ruptura...) alteram um estado em memória compartilhado, então o app reage de verdade a interações dentro da mesma sessão.
+**Alternativa considerada**: preencher `.env` com valores fictícios só para passar da checagem de `requireEnv`. Rejeitada — o app chegaria a abrir a tela de Login, mas login/dashboard/tudo mais continuaria quebrado (erro de rede contra uma URL falsa), não permitindo testar o fluxo de verdade.
+**Se só UMA** das duas envs estiver definida (config real pela metade), `useMockData` continua `false` e o erro original de `requireEnv` continua disparando — isso é config quebrada de verdade, não modo mock intencional.
+**Ação futura**: ao conectar um Supabase real, basta preencher `.env` — nenhum código muda, o switch é automático.
+
+### 18. Correções que só apareceram ao rodar o app de verdade (Expo Go + preview web)
+
+Lista curta, cada uma descoberta ao efetivamente iniciar o Metro bundler e abrir o app num cliente real — nenhuma aparecia em `typecheck`/`lint`/`test`:
+
+- **`expo-asset`/`expo-font` ausentes do `node_modules`** e 4 pacotes desalinhados com o SDK 52 — instalação incompleta desde a Fase 1, só travava o `expo start`. Corrigido com `npx expo install --fix`.
+- **`assets/icon.png`/`splash.png`/`adaptive-icon.png` nunca existiam** (só `logo.png`) — `app.config.ts` referenciava arquivos inexistentes; só quebra ao um dispositivo real buscar o manifesto (fallback exige login numa conta EAS). Gerados a partir do logo existente.
+- **`extra.eas.projectId` com placeholder literal** (`"PREENCHER_APOS_CRIAR_PROJETO_EAS"`) fazia o Expo tentar validar esse ID contra os servidores da EAS ao conectar um cliente real, também caindo no mesmo fluxo de login. Removido — só deve voltar com um projectId real, ao rodar `eas init`.
+- **`@opentelemetry/api` ausente**: `@supabase/supabase-js` tenta importar isso dinamicamente (telemetria opcional, `.catch(() => null)` em runtime); o bundler Metro (diferente de webpack/vite) resolve `import()` estaticamente e quebra o bundle **web** sem essa dependência instalada. Instalada como dependência direta, mesmo nunca sendo usada.
+- **Módulos nativos que chamam `requireNativeModule(...)` no escopo do módulo** (não dentro de uma função) — `expo-sqlite`, `expo-secure-store`, `expo-crypto`, `expo-camera`, `expo-location`, `expo-local-authentication` fazem isso. Um `import` estático de qualquer um deles quebra o carregamento do bundle inteiro em **web** (plataforma sem os bindings nativos), mesmo que nenhuma função do módulo seja chamada. Corrigido de forma pontual onde já bloqueava o app inteiro: `database/local/db.ts` (fila de sincronização) usa import dinâmico + guard `Platform.OS==='web'` nos chamadores (`useAutoSync`, `useSyncStatus`); `lastKnownUser.ts` (SecureStore) ganhou try/catch, já que é só uma saudação cosmética. **Não** foi feito o mesmo para `expo-camera`/`expo-location`/`expo-local-authentication` — funcionam perfeitamente em dispositivo real (Expo Go), e aplicar esse mesmo tratamento a todos seria um retrofit bem maior para uma plataforma (web) que nunca foi o alvo do projeto (ver stack em `README.md`). Se o preview web precisar tocar câmera/GPS/biometria no futuro, aplicar o mesmo padrão.
+- **`metro.config.js` nunca existia**: NativeWind v4 precisa dele (`withNativeWind`) para gerar/injetar o CSS do Tailwind especificamente no bundle **web** — sem isso, o app renderizava (visualmente sem estilo nenhum, HTML "cru"). Adicionado; sem efeito no nativo, que já resolve as classes via `nativewind/babel` (`babel.config.js`).
+
+**Conclusão prática**: `typecheck`/`lint`/`test` continuam necessários mas não são suficientes para saber se o app "roda" — vale rodar `npx expo start` (ou o preview web) pelo menos uma vez por fase daqui pra frente.

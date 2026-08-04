@@ -1,4 +1,6 @@
+import { fakeVisitRepository } from '../fakes/FakeVisitRepository';
 import type { IVisitRepository } from '../interfaces/IVisitRepository';
+import { useMockData } from '@/config/env';
 import type { Activity, ActivityType } from '@/models/Activity';
 import type { Product } from '@/models/Product';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
@@ -233,4 +235,7 @@ class VisitRepository implements IVisitRepository {
   }
 }
 
-export const visitRepository = new VisitRepository();
+/** Modo mock (ver `docs/DECISIONS.md`, item 17): ver mesmo padrão em `AuthRepository.ts`. */
+export const visitRepository: IVisitRepository = useMockData
+  ? fakeVisitRepository
+  : new VisitRepository();

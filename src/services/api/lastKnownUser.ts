@@ -12,15 +12,30 @@ const STORAGE_KEY = 'lynkz_last_promoter_name';
  * SecureStore).
  */
 export const lastKnownUser = {
+  // Best-effort: é só um detalhe de UX (comentário acima), nunca deve
+  // impedir a tela de Login de renderizar se o SecureStore falhar por
+  // qualquer motivo (ex.: sem suporte na plataforma).
   async getLastKnownName(): Promise<string | null> {
-    return SecureStore.getItemAsync(STORAGE_KEY);
+    try {
+      return await SecureStore.getItemAsync(STORAGE_KEY);
+    } catch {
+      return null;
+    }
   },
 
   async setLastKnownName(name: string): Promise<void> {
-    await SecureStore.setItemAsync(STORAGE_KEY, name);
+    try {
+      await SecureStore.setItemAsync(STORAGE_KEY, name);
+    } catch {
+      // ignorado de propósito — ver comentário acima.
+    }
   },
 
   async clear(): Promise<void> {
-    await SecureStore.deleteItemAsync(STORAGE_KEY);
+    try {
+      await SecureStore.deleteItemAsync(STORAGE_KEY);
+    } catch {
+      // ignorado de propósito — ver comentário acima.
+    }
   },
 };
