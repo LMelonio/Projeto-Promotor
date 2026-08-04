@@ -48,7 +48,7 @@ npm start               # abre o Metro Bundler / Expo Go
 
 **Ainda não tem um projeto Supabase?** Sem problema — sem o arquivo `.env`, o app sobe automaticamente em **modo mock** (dados fictícios em memória, ver `docs/DECISIONS.md` item 17): login aceita qualquer e-mail/senha e todas as telas mostram dados de exemplo. Assim que tiver um projeto Supabase real, rode `cp .env.example .env` e preencha as credenciais — o app volta a usar dados reais automaticamente, nenhum código muda.
 
-Também é possível abrir um preview no navegador com `npm run web` (útil para ver rapidamente telas/navegação — câmera, GPS e biometria não funcionam em navegador, só em Expo Go/dispositivo real). **Atualmente indisponível** após a atualização para o SDK 54 (`Cannot use 'import.meta' outside a module`, config de bundling do Metro — ver `docs/DECISIONS.md`, item 19); Expo Go em dispositivo real não é afetado.
+Também é possível abrir um preview no navegador com `npm run web` (útil para ver rapidamente telas/navegação — câmera, GPS e biometria não funcionam em navegador, só em Expo Go/dispositivo real).
 
 Scripts úteis:
 
