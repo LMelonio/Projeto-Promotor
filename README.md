@@ -32,7 +32,7 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - Tela de **Check-in** dedicada (relógio ao vivo + indicador de proximidade em tempo real via `useLiveLocation` — ver `docs/DECISIONS.md` item 24)
 - **Visita em andamento**: checklist de **Atividades** (Questionário de PDV, Fotos da gôndola, Verificação de preços, Registro de ruptura — reescrito a partir da Documentação Funcional real, ver `docs/DECISIONS.md` item 21), **Questionário de PDV** como assistente de 8 perguntas de múltipla escolha, **Fotos** com galeria de miniaturas reais, **Ruptura** com leitura de EAN + gravidade + foto obrigatória
 - Tela de **Check-out** dedicada (resumo da visita + motivo + resultado, georreferenciado — ver `docs/DECISIONS.md` item 22)
-- Tela de **Histórico** de visitas finalizadas (cliente, horário, duração, atividades/fotos)
+- Tela de **Histórico** de visitas finalizadas (filtros de período Hoje/7 dias/30 dias, busca por cliente, resultado da visita, status de sincronização e contagem de rupturas por visita — ver `docs/DECISIONS.md` item 25)
 - Tela de **Perfil completo** (dados do promotor + status da fila de sincronização + logout)
 - **Fila de sincronização offline** (SQLite + `services/sync`): check-in/check-out/Atividade/Questionário/Ruptura nunca se perdem por falta de sinal — ficam na fila e reenviam sozinhos quando a conexão volta (ou manualmente, pelo Perfil)
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint

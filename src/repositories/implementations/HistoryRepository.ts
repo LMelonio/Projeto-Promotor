@@ -11,7 +11,7 @@ class HistoryRepository implements IHistoryRepository {
     const { data: visits, error } = await supabase
       .schema('lynkz')
       .from('visits')
-      .select('id, client_id, checked_in_at, checked_out_at')
+      .select('id, client_id, checked_in_at, checked_out_at, outcome')
       .eq('promoter_id', promoterId)
       .eq('status', 'completed')
       .order('checked_out_at', { ascending: false });
@@ -24,15 +24,9 @@ class HistoryRepository implements IHistoryRepository {
     );
     if (completed.length === 0) return [];
 
-    const [{ data: clients }, { data: activities }] = await Promise.all([
-      supabase
-        .schema('lynkz')
-        .from('clients')
-        .select('id, trade_name')
-        .in(
-          'id',
-          completed.map((v) => v.client_id),
-        ),
+    const clientIds = Array.from(new Set(completed.map((v) => v.client_id)));
+    const [{ data: clients }, { data: activities }, { data: rupturas }] = await Promise.all([
+      supabase.schema('lynkz').from('clients').select('id, trade_name').in('id', clientIds),
       supabase
         .schema('lynkz')
         .from('activities')
@@ -41,6 +35,11 @@ class HistoryRepository implements IHistoryRepository {
           'visit_id',
           completed.map((v) => v.id),
         ),
+      supabase
+        .schema('lynkz')
+        .from('rupturas')
+        .select('client_id, reported_at')
+        .in('client_id', clientIds),
     ]);
 
     const clientNameById = new Map((clients ?? []).map((c) => [c.id, c.trade_name]));
@@ -55,14 +54,31 @@ class HistoryRepository implements IHistoryRepository {
 
     return completed.map((visit) => {
       const summary = activitySummaryByVisit.get(visit.id) ?? { count: 0, photos: 0 };
+      /**
+       * Aproximação assumida (mesmo raciocínio de `CheckoutScreen`, ver
+       * `docs/DECISIONS.md` item 22): `rupturas` não guarda `visit_id`, então
+       * contamos por `reported_at` dentro da janela de check-in/check-out
+       * desta visita.
+       */
+      const rupturaCount = (rupturas ?? []).filter(
+        (r) =>
+          r.client_id === visit.client_id &&
+          r.reported_at >= visit.checked_in_at &&
+          r.reported_at <= visit.checked_out_at,
+      ).length;
+
       return {
         visitId: visit.id,
+        clientId: visit.client_id,
         clientName: clientNameById.get(visit.client_id) ?? 'Cliente',
         checkedInAt: visit.checked_in_at,
         checkedOutAt: visit.checked_out_at,
         durationMinutes: minutesBetween(visit.checked_in_at, visit.checked_out_at),
         activityCount: summary.count,
         photoCount: summary.photos,
+        rupturaCount,
+        outcome: visit.outcome,
+        synced: true,
       };
     });
   }

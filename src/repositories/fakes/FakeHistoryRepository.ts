@@ -1,5 +1,5 @@
 import type { IHistoryRepository } from '../interfaces/IHistoryRepository';
-import { fakeStore, fakeActivities, fakeVisits } from './fakeStore';
+import { fakeStore, fakeActivities, fakeRupturas, fakeVisits } from './fakeStore';
 import type { VisitHistoryEntry } from '@/models/VisitHistoryEntry';
 import { minutesBetween } from '@/shared/utils/date';
 
@@ -16,18 +16,28 @@ class FakeHistoryRepository implements IHistoryRepository {
       )
       .sort((a, b) => (b.checkedOutAt ?? '').localeCompare(a.checkedOutAt ?? ''))
       .map((visit) => {
+        const checkedInAt = visit.checkedInAt as string;
+        const checkedOutAt = visit.checkedOutAt as string;
         const activities = fakeActivities.filter((a) => a.visitId === visit.id);
+        const rupturaCount = fakeRupturas.filter(
+          (r) =>
+            r.clientId === visit.clientId &&
+            r.reportedAt >= checkedInAt &&
+            r.reportedAt <= checkedOutAt,
+        ).length;
+
         return {
           visitId: visit.id,
+          clientId: visit.clientId,
           clientName: fakeStore.findClient(visit.clientId)?.tradeName ?? 'Cliente',
-          checkedInAt: visit.checkedInAt as string,
-          checkedOutAt: visit.checkedOutAt as string,
-          durationMinutes: minutesBetween(
-            visit.checkedInAt as string,
-            visit.checkedOutAt as string,
-          ),
+          checkedInAt,
+          checkedOutAt,
+          durationMinutes: minutesBetween(checkedInAt, checkedOutAt),
           activityCount: activities.length,
           photoCount: activities.reduce((sum, a) => sum + a.photoCount, 0),
+          rupturaCount,
+          outcome: visit.outcome,
+          synced: true,
         };
       });
   }
