@@ -13,11 +13,8 @@ import { colors } from '@/theme';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 /**
- * Cinco itens fixos (decisão aprovada, não é configurável por perfil):
- * Início, Clientes, Visita (central, elevado), Histórico, Perfil.
- * Apenas Início está com a implementação final nesta fase — os demais são
- * placeholders com a navegação já funcional, prontos para receber o
- * conteúdo completo nas próximas fases aprovadas.
+ * Cinco itens fixos (decisão aprovada, não configurável por perfil): Início,
+ * Clientes, Visita (central, elevado), Histórico, Perfil.
  */
 export function MainTabNavigator() {
   return (

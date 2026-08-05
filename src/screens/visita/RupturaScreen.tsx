@@ -21,17 +21,15 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { Product } from '@/models/Product';
-import { RUPTURA_SEVERITY_LABEL, type RupturaSeverity, type RupturaStatus } from '@/models/Ruptura';
+import {
+  RUPTURA_SEVERITIES,
+  RUPTURA_SEVERITY_LABEL,
+  RUPTURA_STATUS_LABEL,
+  type RupturaSeverity,
+} from '@/models/Ruptura';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
-
-const RUPTURA_STATUS_LABEL: Record<RupturaStatus, string> = {
-  pending: 'Pendente',
-  resolved: 'Resolvida',
-};
-
-const SEVERITIES: RupturaSeverity[] = ['stockout', 'low_stock'];
 
 /**
  * Registro de Ruptura (wireframe "9-Registro de ruptura", Documentação
@@ -74,6 +72,25 @@ export function RupturaScreen() {
         product.eanCode.includes(term),
     );
   }, [products.data, search]);
+
+  if (activeVisit.isLoading) {
+    return (
+      <ScreenContainer>
+        <LoadingState message="Carregando..." />
+      </ScreenContainer>
+    );
+  }
+
+  if (!activeVisit.data || !clientId) {
+    return (
+      <ScreenContainer>
+        <ErrorState message="Nenhuma visita em andamento." onRetry={() => navigation.goBack()} />
+      </ScreenContainer>
+    );
+  }
+
+  const canSubmit =
+    selectedProduct !== null && severity !== null && photoUri !== null && Number(quantity) > 0;
 
   function selectProduct(product: Product) {
     setSelectedProduct(product);
@@ -138,25 +155,6 @@ export function RupturaScreen() {
     setSearch('');
   }
 
-  if (activeVisit.isLoading) {
-    return (
-      <ScreenContainer>
-        <LoadingState message="Carregando..." />
-      </ScreenContainer>
-    );
-  }
-
-  if (!activeVisit.data || !clientId) {
-    return (
-      <ScreenContainer>
-        <ErrorState message="Nenhuma visita em andamento." onRetry={() => navigation.goBack()} />
-      </ScreenContainer>
-    );
-  }
-
-  const canSubmit =
-    selectedProduct !== null && severity !== null && photoUri !== null && Number(quantity) > 0;
-
   return (
     <ScreenContainer scroll>
       <View className="flex-row items-center gap-3 mt-4 mb-5">
@@ -203,7 +201,7 @@ export function RupturaScreen() {
           <View>
             <Text className="text-ink-muted text-xs mb-1">Gravidade</Text>
             <View className="flex-row gap-2">
-              {SEVERITIES.map((s) => (
+              {RUPTURA_SEVERITIES.map((s) => (
                 <Pressable
                   key={s}
                   onPress={() => setSeverity(s)}

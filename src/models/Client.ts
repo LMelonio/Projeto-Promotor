@@ -5,6 +5,16 @@
 export type FinancialStatus = 'compliant' | 'delinquent';
 export type VisitStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
+/** Rótulo/tom de badge por situação financeira — usado no card da lista e no Detalhe do Cliente. */
+export const FINANCIAL_STATUS_LABEL: Record<FinancialStatus, string> = {
+  compliant: 'Adimplente',
+  delinquent: 'Inadimplente',
+};
+export const FINANCIAL_STATUS_TONE: Record<FinancialStatus, 'success' | 'danger'> = {
+  compliant: 'success',
+  delinquent: 'danger',
+};
+
 /**
  * Campos adicionados a partir do wireframe "4-Detalhes do Cliente"
  * (Documentação Funcional real) — ver `docs/DECISIONS.md`, item 23.

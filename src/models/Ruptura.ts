@@ -6,12 +6,19 @@
  */
 export type RupturaStatus = 'pending' | 'resolved';
 
+export const RUPTURA_STATUS_LABEL: Record<RupturaStatus, string> = {
+  pending: 'Pendente',
+  resolved: 'Resolvida',
+};
+
 export type RupturaSeverity = 'stockout' | 'low_stock';
 
 export const RUPTURA_SEVERITY_LABEL: Record<RupturaSeverity, string> = {
   stockout: 'Ruptura total',
   low_stock: 'Estoque baixo',
 };
+
+export const RUPTURA_SEVERITIES = Object.keys(RUPTURA_SEVERITY_LABEL) as RupturaSeverity[];
 
 export interface Ruptura {
   id: string;

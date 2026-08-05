@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { FINANCIAL_STATUS_LABEL, FINANCIAL_STATUS_TONE } from '@/models/Client';
 import type { ClientListItem } from '@/models/Client';
 import { daysAgoLabel } from '@/shared/utils/date';
 import { colors } from '@/theme';
@@ -27,8 +28,8 @@ export function ClientCard({ client, onPress }: ClientCardProps) {
             </Text>
           </View>
           <Badge
-            label={client.financialStatus === 'compliant' ? 'Adimplente' : 'Inadimplente'}
-            tone={client.financialStatus === 'compliant' ? 'success' : 'danger'}
+            label={FINANCIAL_STATUS_LABEL[client.financialStatus]}
+            tone={FINANCIAL_STATUS_TONE[client.financialStatus]}
           />
         </View>
 

@@ -11,6 +11,31 @@ import { colors } from '@/theme';
 
 const MIN_PASSWORD_LENGTH = 6;
 
+/** Campo de senha com label — os 3 campos desta tela só diferem em label/valor. */
+function PasswordField({
+  label,
+  value,
+  onChangeText,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+}) {
+  return (
+    <View>
+      <Text className="text-ink-muted text-xs mb-1.5 ml-1">{label}</Text>
+      <TextInput
+        className="h-14 px-4 rounded-input border border-line bg-surface-card text-[15px] text-ink"
+        placeholder="••••••••"
+        placeholderTextColor={colors.inkMuted}
+        secureTextEntry
+        value={value}
+        onChangeText={onChangeText}
+      />
+    </View>
+  );
+}
+
 /** Alterar senha (wireframe de Perfil) — ver `docs/DECISIONS.md`, item 26. */
 export function AlterarSenhaScreen() {
   const navigation = useNavigation<NavigationProp<PerfilStackParamList>>();
@@ -53,41 +78,17 @@ export function AlterarSenhaScreen() {
       </View>
 
       <View className="gap-4">
-        <View>
-          <Text className="text-ink-muted text-xs mb-1.5 ml-1">Senha atual</Text>
-          <TextInput
-            className="h-14 px-4 rounded-input border border-line bg-surface-card text-[15px] text-ink"
-            placeholder="••••••••"
-            placeholderTextColor={colors.inkMuted}
-            secureTextEntry
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-          />
-        </View>
-
-        <View>
-          <Text className="text-ink-muted text-xs mb-1.5 ml-1">Nova senha</Text>
-          <TextInput
-            className="h-14 px-4 rounded-input border border-line bg-surface-card text-[15px] text-ink"
-            placeholder="••••••••"
-            placeholderTextColor={colors.inkMuted}
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-        </View>
-
-        <View>
-          <Text className="text-ink-muted text-xs mb-1.5 ml-1">Confirmar nova senha</Text>
-          <TextInput
-            className="h-14 px-4 rounded-input border border-line bg-surface-card text-[15px] text-ink"
-            placeholder="••••••••"
-            placeholderTextColor={colors.inkMuted}
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-        </View>
+        <PasswordField
+          label="Senha atual"
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+        />
+        <PasswordField label="Nova senha" value={newPassword} onChangeText={setNewPassword} />
+        <PasswordField
+          label="Confirmar nova senha"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
 
         {validationError ? <Text className="text-danger text-xs">{validationError}</Text> : null}
 

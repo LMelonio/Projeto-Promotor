@@ -20,6 +20,13 @@ import { distanceKm, formatDistance } from '@/shared/utils/geo';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 
+/**
+ * Abaixo de 200m o ícone de proximidade fica verde — limiar só visual, sem
+ * gate de distância (a documentação não exige um raio mínimo para o check-in,
+ * ver `docs/DECISIONS.md`, item 24).
+ */
+const PROXIMITY_HIGHLIGHT_KM = 0.2;
+
 function useLiveClock(): Date {
   const [now, setNow] = useState(() => new Date());
 
@@ -57,12 +64,6 @@ export function CheckinScreen() {
   const { status: locationStatus, coords, errorMessage: locationError } = useLiveLocation();
   const now = useLiveClock();
 
-  async function handleConfirm() {
-    if (!coords) return;
-    await checkIn.mutateAsync({ visitId, coords });
-    navigation.goBack();
-  }
-
   if (client.isLoading) {
     return (
       <ScreenContainer>
@@ -86,6 +87,12 @@ export function CheckinScreen() {
   const distance = coords
     ? distanceKm(coords, { latitude: data.latitude, longitude: data.longitude })
     : null;
+
+  async function handleConfirm() {
+    if (!coords) return;
+    await checkIn.mutateAsync({ visitId, coords });
+    navigation.goBack();
+  }
 
   return (
     <ScreenContainer scroll>
@@ -118,7 +125,9 @@ export function CheckinScreen() {
         <Feather
           name="map-pin"
           size={22}
-          color={distance !== null && distance < 0.2 ? colors.success : colors.warning}
+          color={
+            distance !== null && distance < PROXIMITY_HIGHLIGHT_KM ? colors.success : colors.warning
+          }
         />
         {locationStatus === 'requesting' ? (
           <Text className="text-ink-muted text-sm">Obtendo sua localização...</Text>

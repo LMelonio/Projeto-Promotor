@@ -1,50 +1,99 @@
-# Decisões Técnicas — Fase 1
+# Decisões Técnicas
 
-Registro das escolhas feitas nesta fase, com alternativas consideradas e o motivo da rejeição. Objetivo: qualquer pessoa (ou eu mesmo, em uma sessão futura) entender "por que assim" sem precisar perguntar de novo.
+Registro das escolhas técnicas do projeto, com alternativas consideradas e o motivo da rejeição — objetivo: qualquer pessoa (inclusive eu mesmo, numa sessão futura) entender "por que assim" sem precisar perguntar de novo.
+
+## Índice
+
+**Fase 1**
+1. [Expo (managed) em vez de React Native CLI puro](#d1)
+2. [Supabase JS direto via Repository, sem camada GraphQL/REST própria](#d2)
+3. [Sessão do Supabase Auth armazenada com criptografia própria (AES + SecureStore), não `AsyncStorage` puro](#d3)
+4. [Zustand + React Query, não Redux Toolkit nem Context API isolada](#d4)
+5. [NativeWind fixado em `4.1.23` (não `^4.1.23`)](#d5)
+6. [Ícones: Feather (via `@expo/vector-icons`), não um pacote Tabler para React Native](#d6)
+7. [`src/types/supabase.types.ts` manual e temporário](#d7)
+8. [Fotos obrigatórias: câmera direta, não seleção de galeria (decisão para a Fase 3, registrada aqui por já ter sido levantada)](#d8)
+
+**Fase 2**
+9. ["Carteira de clientes" derivada de `visits`, sem tabela de atribuição própria](#d9)
+10. [Colunas `checked_in_latitude`/`checked_in_longitude` em `visits` — assumidas, não confirmadas](#d10)
+11. [Check-in sem visita agendada para hoje: bloqueado, não criado ad-hoc](#d11)
+
+**Fase 3**
+12. [Schema de Atividades/Questionário/Ruptura baseado em `Base App Promotor.xlsx`, não adivinhado](#d12)
+13. [Fotos de Atividade ficam só no dispositivo nesta fase — upload real entra com a fila de sincronização (Fase 4)](#d13)
+
+**Fase 4**
+14. [Fila de sincronização offline: retry genérico por "tipo de ação", não por entidade](#d14)
+15. ["Finalizar visita" (check-out) mora na aba Visita, não no Detalhe do Cliente](#d15)
+16. [Histórico agrega contagem de Atividades/Fotos por consulta separada, não por coluna denormalizada](#d16)
+
+**Testar o app de verdade pela primeira vez**
+17. [Modo mock de dados fictícios (`useMockData` + `repositories/fakes/`)](#d17)
+18. [Correções que só apareceram ao rodar o app de verdade (Expo Go + preview web)](#d18)
+19. [Atualização para Expo SDK 54 (de 52)](#d19)
+20. [`resolver.unstable_enablePackageExports = false` no `metro.config.js`](#d20)
+
+**Reconciliação com a Documentação Funcional real**
+21. [Atividades/Questionário/Ruptura reescritos — o catálogo da Fase 3 vinha de uma fonte errada](#d21)
+22. [Tela de Check-out dedicada (resumo + motivo + resultado) — substitui o check-out direto de um toque](#d22)
+23. [Model de Cliente enriquecido (CNPJ, e-mail, telefone, endereço, bairro, limite de crédito)](#d23)
+24. [Tela de Check-in dedicada (relógio ao vivo + indicador de proximidade)](#d24)
+25. [Histórico enriquecido (filtros de período, busca, sincronização por visita, rupturas, resultado da visita)](#d25)
+26. [Perfil enriquecido (cargo/cidade, Alterar senha, Notificações, Aparência, Ajuda e sobre)](#d26)
+27. [Notificações, banner de offline e recuperar senha — últimos gaps do comparativo](#d27)
 
 ---
 
+<a id="d1"></a>
 ### 1. Expo (managed) em vez de React Native CLI puro
 
 **Escolhido**: Expo SDK 52.
 **Alternativa considerada**: React Native CLI "bare", com linkagem manual de módulos nativos.
 **Motivo**: o app precisa de câmera, GPS, biometria, SecureStore e notificações — todos disponíveis como módulos Expo oficiais, mantidos e testados em conjunto. Bare RN exigiria configurar cada um manualmente (Podfile, Gradle) e manter compatibilidade entre eles a cada upgrade. Para um time pequeno sem um mobile engineer dedicado full-time, o custo de manutenção do bare workflow não se paga. Se no futuro for necessário um módulo nativo que o Expo não cobre, o projeto pode migrar para "Expo prebuild" sem trocar de framework.
 
+<a id="d2"></a>
 ### 2. Supabase JS direto via Repository, sem camada GraphQL/REST própria
 
 **Escolhido**: `@supabase/supabase-js` encapsulado em Repositories.
 **Alternativa considerada**: expor uma API REST/GraphQL própria na frente do Postgres.
 **Motivo**: o schema já foi desenhado com RLS (Row Level Security) fazendo o controle de acesso por promotor — construir uma API própria duplicaria essa lógica de autorização em dois lugares. O padrão Repository já isola a UI do SDK do Supabase; se um dia for necessário trocar por uma API própria, só a implementação dentro de `repositories/implementations` muda.
 
+<a id="d3"></a>
 ### 3. Sessão do Supabase Auth armazenada com criptografia própria (AES + SecureStore), não `AsyncStorage` puro
 
 **Escolhido**: `LargeSecureStore` (chave AES-256 no Keychain/Keystore via `expo-secure-store`, blob criptografado no `AsyncStorage`).
 **Alternativas consideradas**:
   a) `AsyncStorage` puro (recomendação mais simples da própria documentação do Supabase para RN).
   b) `expo-secure-store` puro.
-**Motivo da rejeição de (a)**: `AsyncStorage` não é criptografado — em um aparelho comprometido/rooted, o token de sessão ficaria em texto plano. Dado que o app trafega dados comerciais sensíveis (faturamento, situação financeira de clientes), isso não atende ao requisito de proteção de dados sensíveis.
+**Motivo da rejeição de (a)**: `AsyncStorage` não é criptografado — em um aparelho comprometido/rooted, o token de sessão ficaria em texto plano. Dado que o app trafega dados comerciais sensíveis (faturamento, situação financeira de clientes), isso não atende ao requisito mínimo de proteção de dados.
 **Motivo da rejeição de (b)**: `expo-secure-store` tem limite de ~2048 bytes por valor; a sessão do Supabase (JWT + refresh token + metadata) costuma ultrapassar esse limite, causando falha silenciosa de persistência.
 **Trade-off aceito**: mais uma dependência (`aes-js`) e ~60 linhas de código a mais do que usar `AsyncStorage` puro. Considerado aceitável dado o ganho de segurança.
 
+<a id="d4"></a>
 ### 4. Zustand + React Query, não Redux Toolkit nem Context API isolada
 
 Ver justificativa detalhada em `docs/ARCHITECTURE.md`, seção "Gerenciamento de estado". Resumo: Redux traria boilerplate desproporcional ao tamanho do estado local (só sessão de auth); Context API sozinha não resolve cache/retry de dado remoto.
 
+<a id="d5"></a>
 ### 5. NativeWind fixado em `4.1.23` (não `^4.1.23`)
 
 **Descoberto durante a validação desta fase**: a versão `4.2.x` do NativeWind atualizou sua dependência interna `react-native-css-interop`, que passou a referenciar incondicionalmente o plugin Babel `react-native-worklets/plugin` — pacote que exige `react-native-reanimated` v4 e React Native `0.83+`. Este projeto está em Expo 52 / RN 0.76 / Reanimated 3.16 (par estável e compatível com o restante do ecossistema Expo atual), então essa dependência quebrava o build de testes (`Cannot find module 'react-native-worklets/plugin'`).
 **Decisão**: fixar a versão exata `4.1.23` (última antes dessa mudança) em vez de usar caret (`^`). **Ação futura**: ao planejar upgrade para Reanimated 4 (não necessário nesta fase), revisitar esse pin.
 
+<a id="d6"></a>
 ### 6. Ícones: Feather (via `@expo/vector-icons`), não um pacote Tabler para React Native
 
 **Contexto**: o Design System aprovado especifica ícones estilo "Tabler (outline)". Não existe um pacote React Native oficial e mantido para o conjunto Tabler equivalente ao que já usamos para gerar assets nos entregáveis anteriores (Node/web).
 **Escolhido**: `Feather` (via `@expo/vector-icons`, que já vem com o Expo — zero dependência nova). Visualmente é o set outline mais próximo de Tabler disponível de forma nativa e mantida no ecossistema RN (traço ~2px, estilo linear).
 **Ação futura**: se a diferença visual entre Feather e Tabler for percebida como relevante depois de ver o app rodando em aparelho real, avaliar extrair os SVGs do Tabler (como já foi feito para os documentos de handoff) e gerar um pacote de ícones customizado via `react-native-svg` — mais trabalho, mas fidelidade visual exata.
 
+<a id="d7"></a>
 ### 7. `src/types/supabase.types.ts` manual e temporário
 
 **Decisão consciente de não adivinhar nomes de coluna reais**. Em vez de tentar reproduzir de memória os nomes exatos das colunas das migrations já geradas em sessões anteriores (`lynkz_supabase/migrations/002_tables.sql` etc.), optei por declarar um tipo mínimo, claramente marcado como temporário, cobrindo só os campos que as telas desta fase usam. O caminho correto — documentado no `README.md` e no próprio arquivo — é gerar o tipo real com `supabase gen types typescript` assim que houver acesso ao projeto Supabase, e então reconciliar os Repositories. Adivinhar nomes agora criaria uma falsa sensação de "já integrado" que só quebraria mais tarde, de forma mais cara de depurar.
 
+<a id="d8"></a>
 ### 8. Fotos obrigatórias: câmera direta, não seleção de galeria (decisão para a Fase 3, registrada aqui por já ter sido levantada)
 
 Ainda não implementado nesta fase, mas já decidido para não esquecer: as fotos de Atividades/Ruptura devem ser capturadas via `expo-camera` (captura ao vivo), não via `expo-image-picker` com acesso à galeria. Motivo: a integridade do dado enviado ao BI depende de a foto ser da visita real, não uma imagem qualquer selecionada depois — mesma preocupação de qualidade de dado já registrada nas decisões de produto anteriores do projeto.
@@ -53,6 +102,7 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 
 ## Decisões Técnicas — Fase 2
 
+<a id="d9"></a>
 ### 9. "Carteira de clientes" derivada de `visits`, sem tabela de atribuição própria
 
 **Escolhido**: `ClientRepository.listPortfolio` busca todo cliente com pelo menos uma visita (passada ou futura) registrada para o promotor autenticado, na tabela `visits` — mesmo padrão já usado em `DashboardRepository.getTodayRoute`.
@@ -60,12 +110,14 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 **Motivo**: nenhuma migration conhecida até agora expõe essa tabela — inventar seu nome/formato repetiria o erro que a decisão nº 7 já evita para `supabase.types.ts`. Como `visits` já carrega o vínculo promotor↔cliente (usado desde a Fase 1 na Home), reaproveitá-lo é a opção que não exige adivinhar schema novo.
 **Ação futura**: se as migrations reais tiverem uma tabela de atribuição fixa (carteira independente de visita já ter ocorrido), revisar `listPortfolio` para consultá-la diretamente — hoje um cliente sem nenhuma visita agendada nunca aparece na lista.
 
+<a id="d10"></a>
 ### 10. Colunas `checked_in_latitude`/`checked_in_longitude` em `visits` — assumidas, não confirmadas
 
 **Contexto**: o check-in georreferenciado (Fase 2) precisa persistir a coordenada capturada no momento do toque, e a tabela `visits` só tinha, no tipo manual herdado da Fase 1, `checked_in_at`.
 **Escolhido**: adicionar `checked_in_latitude`/`checked_in_longitude` (nullable) ao tipo manual de `visits` em `src/types/supabase.types.ts`, marcadas com comentário de "assumido, reconciliar ao gerar tipos reais" — mesmo espírito da decisão nº 7.
 **Ação futura**: ao rodar `npm run gen:types`, confirmar se as migrations reais usam esses nomes (ou, por exemplo, um único campo `geography`/PostGIS) e ajustar `ClientRepository.checkIn` de acordo.
 
+<a id="d11"></a>
 ### 11. Check-in sem visita agendada para hoje: bloqueado, não criado ad-hoc
 
 **Escolhido**: a tela de Detalhe do Cliente só oferece "Iniciar check-in" quando já existe uma visita com `status = 'scheduled'` para o cliente na data de hoje. Sem visita, mostra apenas "Nenhuma visita agendada para hoje com este cliente." — não cria uma visita nova on-the-fly.
@@ -76,6 +128,7 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 
 ## Decisões Técnicas — Fase 3
 
+<a id="d12"></a>
 ### 12. Schema de Atividades/Questionário/Ruptura baseado em `Base App Promotor.xlsx`, não adivinhado
 
 **Contexto**: ao contrário das Fases 1 e 2 (onde não havia nenhuma fonte confiável para os nomes de tabela/coluna, ver decisão nº 7), foi localizada ao lado do projeto (`Desktop/Projeto Promotor/Base App Promotor.xlsx`, fora deste repositório Git) uma planilha funcional com abas `Produtos`, `CarteiraProdutos`, `Atividades`, `Questionarios` e `Rupturas` — dados de exemplo com as colunas exatas do domínio que esta fase precisa modelar.
@@ -83,6 +136,7 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 **Catálogo fixo assumido**: os seis tipos de atividade (`Instalação de materiais`, `Treinamento`, `Organização de gôndola`, `Precificação`, `Ação promocional`, `Reposição`) e os dois status de ruptura (`Pendente`/`Resolvida`) vêm direto dos valores distintos observados na planilha. Já `ActivityStatus` inclui `pending`, que não aparece nos dados de exemplo (toda atividade amostrada já está `Concluída`) — assumido por simetria com o fluxo de check-in.
 **Ação futura**: mesmo aviso da decisão nº 7 — reconciliar contra migrations reais ao rodar `npm run gen:types`. Além disso, essa planilha revelou uma tabela `CarteiraClientes` (Promotor_ID/Cliente_ID/Status) que parece ser exatamente a "tabela de atribuição fixa de carteira" que a decisão nº 9 (Fase 2) já previa como possível — vale revisitar `ClientRepository.listPortfolio` num ciclo futuro à luz disso.
 
+<a id="d13"></a>
 ### 13. Fotos de Atividade ficam só no dispositivo nesta fase — upload real entra com a fila de sincronização (Fase 4)
 
 **Escolhido**: `ActivityCameraModal` captura as fotos ao vivo (decisão nº 8) e a tela registra apenas a **contagem** (`photo_count`) junto da atividade — os binários não são enviados ao Supabase Storage nesta fase.
@@ -94,6 +148,7 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 
 ## Decisões Técnicas — Fase 4
 
+<a id="d14"></a>
 ### 14. Fila de sincronização offline: retry genérico por "tipo de ação", não por entidade
 
 **Escolhido**: uma única tabela SQLite `sync_queue` (`database/local/db.ts`) guarda `{id, kind, payload, created_at, attempts, last_error}`; `services/sync/syncEngine.ts` mantém um mapa `SYNC_HANDLERS: Record<SyncKind, (payload) => Promise<...>>` com um handler por tipo de escrita (`check_in`, `check_out`, `register_activity`, `submit_questionnaire`, `register_ruptura`). `runOrQueue(kind, payload)` tenta a chamada real primeiro; se falhar por qualquer motivo, enfileira o mesmo payload — não distingue "sem internet" de outros erros de rede, porque em campo esse é o cenário dominante e as validações client-side (coordenadas obtidas, foto ≥ 1, quantidade > 0) já reduzem bastante a chance de um payload inválido chegar até aqui.
@@ -103,12 +158,14 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 **Simplificação aceita conscientemente**: quando uma ação é enfileirada offline, o cache do React Query é corrigido otimisticamente só onde a tela já dependia diretamente daquele estado (checklist de Atividades, badge do Questionário, status da visita em `today-visit`/`active-visit`) — a lista "Rupturas deste cliente" **não** recebe patch otimista, só aparece após sincronizar de verdade (`useRegisterRuptura` em `useVisitaData.ts`). Fazer isso também exigiria inventar um id local e um status "pendente de sincronização" só para essa lista, para um caso de uso secundário (revisão de rupturas já registradas) — não parece valer o custo agora.
 **Ação futura**: os binários das fotos de Atividade (decisão nº 13) **continuam não sincronizados** nesta fase — a fila lida com dados estruturados (JSON), não com arquivos. Adicionar isso exigiria decidir um bucket/caminho de Storage (ainda não confirmado, mesmo risco da decisão nº 7) e uma estratégia de payload maior (base64 em SQLite tem custo de espaço/performance real) — fica registrado como próximo passo, não escondido.
 
+<a id="d15"></a>
 ### 15. "Finalizar visita" (check-out) mora na aba Visita, não no Detalhe do Cliente
 
 **Escolhido**: o botão de check-out fica no topo de `VisitaScreen` (o "hub" da visita em andamento desde a Fase 3), não em `ClienteDetalheScreen` — que ganhou só um atalho "Ir para Visita" enquanto a visita está em andamento, e um resumo (horário + duração) quando já concluída.
 **Alternativa considerada**: manter check-in E check-out simétricos, os dois em `ClienteDetalheScreen` (onde o check-in já vive desde a Fase 2).
 **Motivo**: depois que o check-in acontece, o fluxo do promotor migra para a aba Visita (Atividades/Questionário/Ruptura) — pedir para ele voltar para Clientes só para encerrar a visita que está acompanhando na outra aba criaria uma navegação de ida e volta desnecessária. Check-in continua em Detalhe do Cliente porque é o ponto de partida natural (decisão de produto da Fase 2, não revisada aqui).
 
+<a id="d16"></a>
 ### 16. Histórico agrega contagem de Atividades/Fotos por consulta separada, não por coluna denormalizada
 
 **Escolhido**: `HistoryRepository.listCompletedVisits` busca `visits` (status `completed`) e depois `activities` filtradas por `visit_id in (...)`, agregando contagem e soma de `photo_count` em memória — não existe (nem foi assumida) uma coluna `quantidade_atividades`/`quantidade_fotos` na tabela `visits`, mesmo a planilha de referência (decisão nº 12) tendo essas colunas em `HistoricoVisitas`.
@@ -120,14 +177,16 @@ Ainda não implementado nesta fase, mas já decidido para não esquecer: as foto
 
 Até aqui, "validação" significava `typecheck`/`lint`/`test`. Nenhum deles exercita o Metro bundler nem um dispositivo/navegador real — então vários problemas reais só apareceram quando o app foi de fato executado (Expo Go e depois preview web). Registrados aqui porque nenhum é óbvio a partir do código sozinho.
 
+<a id="d17"></a>
 ### 17. Modo mock de dados fictícios (`useMockData` + `repositories/fakes/`)
 
 **Contexto**: o app nunca teve um projeto Supabase real conectado (nenhuma fase anterior teve acesso a isso, e a pasta `lynkz_supabase/migrations/` citada desde a Fase 1 não existe em nenhum lugar acessível). Sem isso, o app não consegue nem inicializar — e criar um projeto Supabase real ficou para uma etapa futura.
 **Escolhido**: se **nenhuma** das duas envs do Supabase estiver definida, `src/config/env.ts` ativa `useMockData = true`, e cada `implementations/*Repository.ts` exporta uma implementação fictícia de `repositories/fakes/` em vez da real — nenhuma tela precisa saber disso, ambas satisfazem a mesma interface (`IAuthRepository`, `IClientRepository` etc., exatamente o benefício que `docs/ARCHITECTURE.md` já previa para essa camada desde a Fase 1). Os dados fictícios (`fakeStore.ts`) reaproveitam nomes/coordenadas da planilha de referência (decisão nº 12) para parecerem realistas, e mutações (check-in, atividade, ruptura...) alteram um estado em memória compartilhado, então o app reage de verdade a interações dentro da mesma sessão.
 **Alternativa considerada**: preencher `.env` com valores fictícios só para passar da checagem de `requireEnv`. Rejeitada — o app chegaria a abrir a tela de Login, mas login/dashboard/tudo mais continuaria quebrado (erro de rede contra uma URL falsa), não permitindo testar o fluxo de verdade.
-**Se só UMA** das duas envs estiver definida (config real pela metade), `useMockData` continua `false` e o erro original de `requireEnv` continua disparando — isso é config quebrada de verdade, não modo mock intencional.
+**Configuração parcial**: se só uma das duas envs estiver definida (config real pela metade), `useMockData` continua `false` e o erro original de `requireEnv` continua disparando — isso é config quebrada de verdade, não modo mock intencional.
 **Ação futura**: ao conectar um Supabase real, basta preencher `.env` — nenhum código muda, o switch é automático.
 
+<a id="d18"></a>
 ### 18. Correções que só apareceram ao rodar o app de verdade (Expo Go + preview web)
 
 Lista curta, cada uma descoberta ao efetivamente iniciar o Metro bundler e abrir o app num cliente real — nenhuma aparecia em `typecheck`/`lint`/`test`:
@@ -135,20 +194,22 @@ Lista curta, cada uma descoberta ao efetivamente iniciar o Metro bundler e abrir
 - **`expo-asset`/`expo-font` ausentes do `node_modules`** e 4 pacotes desalinhados com o SDK 52 — instalação incompleta desde a Fase 1, só travava o `expo start`. Corrigido com `npx expo install --fix`.
 - **`assets/icon.png`/`splash.png`/`adaptive-icon.png` nunca existiam** (só `logo.png`) — `app.config.ts` referenciava arquivos inexistentes; só quebra ao um dispositivo real buscar o manifesto (fallback exige login numa conta EAS). Gerados a partir do logo existente.
 - **`extra.eas.projectId` com placeholder literal** (`"PREENCHER_APOS_CRIAR_PROJETO_EAS"`) fazia o Expo tentar validar esse ID contra os servidores da EAS ao conectar um cliente real, também caindo no mesmo fluxo de login. Removido — só deve voltar com um projectId real, ao rodar `eas init`.
-- **`@opentelemetry/api` ausente**: `@supabase/supabase-js` tenta importar isso dinamicamente (telemetria opcional, `.catch(() => null)` em runtime); o bundler Metro (diferente de webpack/vite) resolve `import()` estaticamente e quebra o bundle **web** sem essa dependência instalada. Instalada como dependência direta, mesmo nunca sendo usada.
+- **`@opentelemetry/api` ausente** — `@supabase/supabase-js` tenta importar isso dinamicamente (telemetria opcional, `.catch(() => null)` em runtime); o bundler Metro (diferente de webpack/vite) resolve `import()` estaticamente e quebra o bundle **web** sem essa dependência instalada. Instalada como dependência direta, mesmo nunca sendo usada.
 - **Módulos nativos que chamam `requireNativeModule(...)` no escopo do módulo** (não dentro de uma função) — `expo-sqlite`, `expo-secure-store`, `expo-crypto`, `expo-camera`, `expo-location`, `expo-local-authentication` fazem isso. Um `import` estático de qualquer um deles quebra o carregamento do bundle inteiro em **web** (plataforma sem os bindings nativos), mesmo que nenhuma função do módulo seja chamada. Corrigido de forma pontual onde já bloqueava o app inteiro: `database/local/db.ts` (fila de sincronização) usa import dinâmico + guard `Platform.OS==='web'` nos chamadores (`useAutoSync`, `useSyncStatus`); `lastKnownUser.ts` (SecureStore) ganhou try/catch, já que é só uma saudação cosmética. **Não** foi feito o mesmo para `expo-camera`/`expo-location`/`expo-local-authentication` — funcionam perfeitamente em dispositivo real (Expo Go), e aplicar esse mesmo tratamento a todos seria um retrofit bem maior para uma plataforma (web) que nunca foi o alvo do projeto (ver stack em `README.md`). Se o preview web precisar tocar câmera/GPS/biometria no futuro, aplicar o mesmo padrão.
-- **`metro.config.js` nunca existia**: NativeWind v4 precisa dele (`withNativeWind`) para gerar/injetar o CSS do Tailwind especificamente no bundle **web** — sem isso, o app renderizava (visualmente sem estilo nenhum, HTML "cru"). Adicionado; sem efeito no nativo, que já resolve as classes via `nativewind/babel` (`babel.config.js`).
+- **`metro.config.js` nunca existia** — NativeWind v4 precisa dele (`withNativeWind`) para gerar/injetar o CSS do Tailwind especificamente no bundle **web**; sem isso, o app renderizava sem estilo nenhum (HTML "cru"). Adicionado; sem efeito no nativo, que já resolve as classes via `nativewind/babel` (`babel.config.js`).
 
 **Conclusão prática**: `typecheck`/`lint`/`test` continuam necessários mas não são suficientes para saber se o app "roda" — vale rodar `npx expo start` (ou o preview web) pelo menos uma vez por fase daqui pra frente.
 
+<a id="d19"></a>
 ### 19. Atualização para Expo SDK 54 (de 52)
 
 **Contexto**: o Expo Go instalado por um usuário novo vem sempre na versão mais recente da loja (SDK 54 no momento desta atualização) — só existe UMA versão publicada por vez, não dá pra "instalar uma mais antiga" pela Play Store/App Store. Tentar abrir este projeto (SDK 52) com esse Expo Go falha com `Project is incompatible with this version of Expo Go`.
 **Alternativas consideradas**: (a) pedir para o usuário baixar um Expo Go antigo via sideload (só existe para Android, exige habilitar instalação de fontes desconhecidas); (b) manter o projeto no SDK 52 e usar só o preview web daqui pra frente.
 **Escolhido**: atualizar o projeto para SDK 54 (`npx expo install expo@^54.0.0` + `npx expo install --fix`, reinstalação limpa de `node_modules`/lockfile por causa do tamanho do salto de versão) — resolve de vez para qualquer usuário futuro que instale o Expo Go hoje, em vez de deixar o projeto preso a uma versão cada vez mais difícil de testar.
 **O que mudou**: React 18→19, React Native 0.76→0.81, Reanimated 3.16→4.1 (agora exige `react-native-worklets` como peer dependency direta — a preocupação da decisão nº 5 sobre evitar essa dependência não se aplica mais, o próprio SDK 54 já exige), `@testing-library/react-native` 12→14 (só a v14 suporta React 19; também exigiu atualizar o `overrides.react-test-renderer` de `18.3.1` para `19.1.0` em `package.json`), `jest-expo` 52→54, e mais uma dependência que faltava no `node_modules` (`babel-preset-expo`, mesma categoria de instalação incompleta já vista na decisão nº 18).
-**Regressão temporária, já corrigida** (ver item 20): o preview web parou de carregar logo após esta atualização (`Cannot use 'import.meta' outside a module`) — não afetava o Expo Go em dispositivo físico.
+**Regressão temporária, já corrigida (ver item 20)**: o preview web parou de carregar logo após esta atualização (`Cannot use 'import.meta' outside a module`) — não afetava o Expo Go em dispositivo físico.
 
+<a id="d20"></a>
 ### 20. `resolver.unstable_enablePackageExports = false` no `metro.config.js`
 
 **Contexto**: depois da atualização para SDK 54 (decisão nº 19), o preview web parou de carregar com `Cannot use 'import.meta' outside a module`. Rastreando a origem exata dentro do bundle (procurando o texto literal nos módulos gerados), o erro não vinha de código deste projeto — vinha do build ESM do **zustand** (`esm/index.mjs`, que usa `import.meta.env.MODE` para um aviso de depreciação).
@@ -163,6 +224,7 @@ Lista curta, cada uma descoberta ao efetivamente iniciar o Metro bundler e abrir
 
 O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificação real do app, com wireframes de todas as 14 telas. Comparando contra o código, vários gaps apareceram (ver o comparativo publicado como artefato na conversa); o maior está registrado abaixo.
 
+<a id="d21"></a>
 ### 21. Atividades/Questionário/Ruptura reescritos — o catálogo da Fase 3 vinha de uma fonte errada
 
 **Contexto**: a Fase 3 modelou "Atividades" como um catálogo fixo de 6 tipos genéricos (Instalação de materiais, Treinamento, Organização de gôndola, Precificação, Ação promocional, Reposição), com Questionário e Ruptura como fluxos totalmente separados — tudo baseado na planilha `Base App Promotor.xlsx` (decisão nº 12), que era a única fonte disponível na época. A Documentação Funcional real mostra uma estrutura diferente: "Atividades" é uma lista de **4 itens**, com barra de progresso, onde **Questionário de PDV** e **Registro de ruptura** são dois desses itens (abrindo cada um seu próprio sub-fluxo ao serem tocados), junto de "Fotos da gôndola" e um 4º item.
@@ -174,6 +236,7 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 **Descoberta útil**: ao testar no preview web, `expo-camera` funciona perfeitamente via `getUserMedia` do navegador (webcam) — ao contrário de `expo-sqlite`/`expo-secure-store`/`expo-crypto` (decisão nº 18), não precisou de nenhum guard `Platform.OS === 'web'`.
 **Ação futura**: as próximas telas da Documentação Funcional (Check-out com resumo/motivo/resultado, Cliente com CNPJ/endereço/limite de crédito, Check-in dedicado com mapa, Histórico com filtros, Perfil completo, Notificações) ainda não foram atacadas — ver o comparativo completo publicado na conversa para o restante do plano.
 
+<a id="d22"></a>
 ### 22. Tela de Check-out dedicada (resumo + motivo + resultado) — substitui o check-out direto de um toque
 
 **Contexto**: a Fase 4 tratava "Finalizar visita" como uma ação direta — um toque no botão já disparava GPS + `checkOut` sem nenhuma confirmação intermediária. O wireframe real ("10-Check-out") mostra uma tela própria: resumo da visita (duração, atividades concluídas, fotos, rupturas), seleção de **motivo da visita** e **resultado da visita**, só então o botão de confirmação.
@@ -183,6 +246,7 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 **Bug real encontrado e corrigido durante o teste end-to-end (Playwright)**: `submitQuestionnaire` e `registerRuptura` nunca registravam uma `Activity` correspondente (`kind: 'questionnaire'` / `kind: 'ruptura'`) — só gravavam os dados específicos (respostas/ruptura), e o checklist de `VisitaScreen` lê exclusivamente da lista de `Activity`. Resultado: o item "Questionário de PDV" (obrigatório) nunca virava "Concluída", travando `Finalizar visita` para sempre. Corrigido chamando `registerActivity` logo após o sucesso de `submitQuestionnaire` (`QuestionarioScreen`) e, no caso de ruptura (opcional, pode ser registrada mais de uma vez por visita), só na primeira ruptura da visita (`RupturaScreen`, guardado por `hasRupturaActivity` checado contra `useActivities`) — evita inserir múltiplas linhas de `Activity` para o mesmo item de checklist.
 **Confirmado**: fluxo completo testado via Playwright no preview web — login → check-in → checklist (verificação de preços, questionário de 8 perguntas, 3 fotos via webcam) → "Finalizar visita" habilitado → Check-out mostra resumo correto (3 de 4 atividades, 3 fotos, 0 rupturas) → seleção de motivo/resultado → confirmação → visita encerrada e aba Visita volta a "Nenhuma visita em andamento". typecheck/lint/test (18/18) limpos.
 
+<a id="d23"></a>
 ### 23. Model de Cliente enriquecido (CNPJ, e-mail, telefone, endereço, bairro, limite de crédito)
 
 **Contexto**: o wireframe "4-Detalhes do Cliente" mostra um cliente com bem mais informação do que o model atual guardava — CNPJ, e-mail, telefone, endereço completo com "Ver no Google Maps", bairro (também usado no card da lista, "Cód. 4921 · Aldeota") e limite de crédito, organizados em seções "Informações"/"Endereço"/"Financeiro".
@@ -191,6 +255,7 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 **Dados fictícios**: os 5 clientes seed do modo mock (`fakeStore.ts`) ganharam CNPJ/e-mail/telefone/endereço/bairro/cidade/UF/limite de crédito plausíveis (cidades da região Tocantins/Maranhão/Pará, coerente com as coordenadas já existentes) — mesma natureza "dados fictícios" dos demais dados de exemplo do projeto.
 **Confirmado**: testado via Playwright — lista mostra "5 na carteira" e bairro por card; Detalhe do Cliente mostra as três seções com os dados corretos; "Histórico de ações" navega para a aba Histórico. typecheck/lint/test (18/18) limpos.
 
+<a id="d24"></a>
 ### 24. Tela de Check-in dedicada (relógio ao vivo + indicador de proximidade)
 
 **Contexto**: o Check-in era só um botão dentro do Detalhe do Cliente que capturava uma leitura única de GPS no toque e só mostrava a distância *depois* de já ter confirmado. O wireframe real mostra Check-in como uma **tela própria**: relógio ao vivo, indicador de proximidade em tempo real ("você está a ~40m do cliente") **antes** de confirmar.
@@ -199,6 +264,7 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 **Bug real encontrado e corrigido durante o teste end-to-end (Playwright)**: o `LocationSubscription` devolvido por `Location.watchPositionAsync` no **web** não implementa `remove()` corretamente — chamar no cleanup do efeito ao desmontar a tela (`removeSubscription is not a function`) derrubava a árvore React inteira (tela em branco ao voltar do Check-in, sem nenhum erro visível para o usuário). Mesma categoria de quirk de `expo-location`/`expo-sqlite`/`expo-secure-store` no web já documentada no item 18 — corrigido envolvendo a chamada em `try/catch` no cleanup de `useLiveLocation`.
 **Confirmado**: testado via Playwright — abrir Check-in mostra relógio e distância ("~1.4 km do cliente") corretamente; confirmar check-in volta ao Detalhe do Cliente sem tela em branco, com "Check-in feito às HH:MM" e status "Em andamento". typecheck/lint/test (18/18) limpos.
 
+<a id="d25"></a>
 ### 25. Histórico enriquecido (filtros de período, busca, sincronização por visita, rupturas, resultado da visita)
 
 **Contexto**: o Histórico só mostrava cliente/horário/duração/atividades/fotos, sem nenhum filtro. A Documentação Funcional pede filtros de período (Hoje/7 dias/30 dias + calendário), busca por cliente, status de sincronização por visita ("Sincronizada"/"Na fila"), contagem de rupturas e o status "Cliente ausente" (que depende do campo `outcome`, já existente desde o Check-out — decisão nº 22).
@@ -208,6 +274,7 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 **Status de sincronização por visita**: calculado no hook (`useVisitHistory`), não no repositório — depende da fila de sincronização (`services/sync`), uma camada à parte dos dados de negócio (mesma separação de `useSyncStatus`). Novo `SyncQueue.pendingVisitIds()` extrai os `visitId` de qualquer escrita ainda pendente na fila (check-in/check-out/atividade/questionário — `register_ruptura` não carrega `visitId` no payload, mesma limitação já registrada no item 14, então uma ruptura enfileirada não derruba o selo "Sincronizada" da visita). Sem efeito em web (fila depende de `expo-sqlite`, sempre reporta tudo sincronizado — mesmo guard de `useSyncStatus`).
 **Confirmado**: testado via Playwright — filtro "Hoje"/"30 dias"/"Todos" e busca por "Mundo" funcionam corretamente; card mostra "Visita concluída" e "Sincronizada" com os dados do seed fictício. typecheck/lint/test (18/18) limpos.
 
+<a id="d26"></a>
 ### 26. Perfil enriquecido (cargo/cidade, Alterar senha, Notificações, Aparência, Ajuda e sobre)
 
 **Contexto**: o Perfil já tinha avatar com iniciais (implementado antes deste comparativo), mas mostrava o fornecedor como badge em vez de cargo+cidade, e não tinha nenhum dos 4 itens de configuração do wireframe: Alterar senha, Notificações, Aparência (claro/escuro/automático) e Ajuda e sobre.
@@ -217,6 +284,7 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 **Aparência — limitação documentada, não escondida**: a tela seleciona e persiste `claro`/`escuro`/`automático` de verdade, mas o app inteiro continua com as cores fixas em tema claro (`tailwind.config.js` não tem `darkMode` configurado, e nenhum token de `src/theme` tem variante escura) — dar suporte real a modo escuro exigiria uma revisão de `dark:` em toda tela do app, escopo maior que uma reconciliação pontual. A tela deixa isso explícito para o usuário ("o app ainda usa o tema claro em todas as telas..."), em vez de implementar um seletor que parece funcionar mas não recolore nada.
 **Confirmado**: testado via Playwright — Perfil mostra "Promotor técnico · Imperatriz"; as 4 sub-telas abrem e voltam corretamente; toggle de notificação muda de estado; seleção de Aparência troca de "Claro" para "Escuro" corretamente; Alterar senha com dados válidos salva e volta ao Perfil sem erro. typecheck/lint/test (18/18) limpos.
 
+<a id="d27"></a>
 ### 27. Notificações, banner de offline e recuperar senha — últimos gaps do comparativo
 
 **Contexto**: fecha os 3 itens finais do comparativo contra a Documentação Funcional: a tela de **Notificações** (caixa de entrada, com os itens de exemplo "Endereço aprovado"/"Endereço recusado" sugerindo um fluxo de aprovação de atualização de endereço de cliente), o banner persistente **"Sem conexão · trabalhando offline"** na Home, e o link **"Recuperar senha"** no Login.

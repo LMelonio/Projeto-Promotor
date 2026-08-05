@@ -18,8 +18,8 @@ import { colors } from '@/theme';
  * Visita em andamento (wireframe "6-Atividades", Documentação Funcional):
  * checklist de 4 itens — Questionário de PDV, Fotos da gôndola, Verificação
  * de preços (mandatório, assumido — ver `models/Activity.ts`) e Registro de
- * ruptura (opcional). Reescrito a partir da documentação real; ver
- * `docs/DECISIONS.md`, item 21, para o histórico da mudança.
+ * ruptura (opcional). Reescrito a partir da documentação real — ver
+ * `docs/DECISIONS.md`, item 21.
  *
  * Simplificação assumida: o checklist mostra só Pendente/Concluída — o
  * progresso parcial de "Fotos da gôndola" (ex.: "1 de 3") fica local à tela
@@ -34,20 +34,6 @@ export function VisitaScreen() {
 
   const activities = useActivities(visitId);
   const registerActivity = useRegisterActivity(visitId);
-
-  function handleGoToClientes() {
-    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Clientes');
-  }
-
-  async function handlePriceCheckToggle() {
-    if (!activeVisit.data || !promoterId) return;
-    await registerActivity.mutateAsync({
-      clientId: activeVisit.data.clientId,
-      promoterId,
-      kind: 'price_check',
-      photoCount: 0,
-    });
-  }
 
   if (activeVisit.isLoading) {
     return (
@@ -87,6 +73,20 @@ export function VisitaScreen() {
     (item) => item.mandatory && !byKind.has(item.kind),
   ).length;
   const canFinish = pendingMandatory === 0;
+
+  function handleGoToClientes() {
+    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Clientes');
+  }
+
+  async function handlePriceCheckToggle() {
+    if (!activeVisit.data || !promoterId) return;
+    await registerActivity.mutateAsync({
+      clientId: activeVisit.data.clientId,
+      promoterId,
+      kind: 'price_check',
+      photoCount: 0,
+    });
+  }
 
   function handlePressItem(kind: (typeof ACTIVITY_CHECKLIST)[number]['kind']) {
     if (byKind.has(kind)) return;

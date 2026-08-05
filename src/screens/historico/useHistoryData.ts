@@ -7,10 +7,10 @@ import { syncQueue } from '@/services/sync/SyncQueue';
 /**
  * Hook de dados do Histórico (Fase 4) — mesmo padrão de
  * `screens/home/useHomeData.ts`. O selo "Na fila" por visita (ver
- * `docs/DECISIONS.md`, item 25) é calculado aqui, não no repositório: ele
- * depende da fila de sincronização (`services/sync`), uma camada à parte dos
- * dados de negócio — mesma separação já usada em `useSyncStatus`. Sem efeito
- * em web (fila depende de `expo-sqlite`, sempre reporta tudo sincronizado).
+ * `docs/DECISIONS.md`, item 25) é calculado aqui, não no repositório, pois
+ * depende da fila de sincronização (`services/sync`) — camada à parte dos
+ * dados de negócio, mesma separação de `useSyncStatus`. Sem efeito no web
+ * (fila depende de `expo-sqlite`, sempre reporta tudo sincronizado).
  */
 export function useVisitHistory(promoterId: string | undefined) {
   return useQuery({

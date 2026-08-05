@@ -4,6 +4,7 @@ import { useMockData } from '@/config/env';
 import type { Client, ClientListItem, TodayVisit, VisitStatus } from '@/models/Client';
 import type { VisitOutcome, VisitReason } from '@/models/Visit';
 import { supabase } from '@/services/supabase/client';
+import type { Coordinates } from '@/shared/utils/geo';
 
 /**
  * TODO (alinhamento de backend): não existe, nas migrations conhecidas até
@@ -145,11 +146,7 @@ class ClientRepository implements IClientRepository {
     };
   }
 
-  async checkIn(
-    visitId: string,
-    coords: { latitude: number; longitude: number },
-    occurredAt: string,
-  ): Promise<void> {
+  async checkIn(visitId: string, coords: Coordinates, occurredAt: string): Promise<void> {
     const { error } = await supabase
       .schema('lynkz')
       .from('visits')
@@ -168,7 +165,7 @@ class ClientRepository implements IClientRepository {
 
   async checkOut(input: {
     visitId: string;
-    coords: { latitude: number; longitude: number };
+    coords: Coordinates;
     occurredAt: string;
     reason: VisitReason;
     outcome: VisitOutcome;

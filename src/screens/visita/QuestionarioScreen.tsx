@@ -13,7 +13,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { SelectableList } from '@/components/ui/SelectableList';
 import { PDV_QUESTIONNAIRE, type QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
@@ -117,27 +117,12 @@ export function QuestionarioScreen() {
 
       <Text className="text-ink font-bold text-lg mb-4">{question.text}</Text>
 
-      <Card className="gap-0.5 mb-6">
-        {question.options.map((option, index) => {
-          const isSelected = selected === index;
-          return (
-            <Pressable
-              key={option}
-              onPress={() => setAnswers((prev) => ({ ...prev, [question.id]: index }))}
-              className={`flex-row items-center gap-3 py-3 ${
-                index < question.options.length - 1 ? 'border-b border-line' : ''
-              }`}
-            >
-              <Feather
-                name={isSelected ? 'check-circle' : 'circle'}
-                size={20}
-                color={isSelected ? colors.brand : colors.inkMuted}
-              />
-              <Text className="text-ink text-sm flex-1">{option}</Text>
-            </Pressable>
-          );
-        })}
-      </Card>
+      <SelectableList
+        items={question.options.map((option, index) => ({ value: index, label: option }))}
+        value={selected ?? null}
+        onChange={(index) => setAnswers((prev) => ({ ...prev, [question.id]: index }))}
+        className="mb-6"
+      />
 
       {submitQuestionnaire.isError || registerActivity.isError ? (
         <Text className="text-danger text-xs mb-3">

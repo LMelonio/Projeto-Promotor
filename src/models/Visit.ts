@@ -36,12 +36,3 @@ export const VISIT_OUTCOME_LABEL: Record<VisitOutcome, string> = {
 };
 
 export const VISIT_OUTCOMES = Object.keys(VISIT_OUTCOME_LABEL) as VisitOutcome[];
-
-/** Resumo mostrado na tela de Check-out antes de confirmar. */
-export interface VisitSummary {
-  durationMinutes: number;
-  activitiesDone: number;
-  activitiesTotal: number;
-  photoCount: number;
-  rupturaCount: number;
-}

@@ -14,6 +14,7 @@ import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { FINANCIAL_STATUS_LABEL, FINANCIAL_STATUS_TONE } from '@/models/Client';
 import type { VisitStatus } from '@/models/Client';
 import type { ClientesStackParamList, MainTabParamList } from '@/navigation/types';
 import { formatCurrencyBRL, formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
@@ -49,21 +50,6 @@ export function ClienteDetalheScreen() {
   const client = useClient(clientId);
   const todayVisit = useTodayVisit(promoterId, clientId);
 
-  function handleOpenMaps() {
-    if (!client.data) return;
-    const { latitude, longitude } = client.data;
-    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`);
-  }
-
-  function handleOpenHistorico() {
-    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Historico');
-  }
-
-  function handleGoToCheckin() {
-    if (!todayVisit.data) return;
-    navigation.navigate('Checkin', { clientId, visitId: todayVisit.data.visitId });
-  }
-
   if (client.isLoading) {
     return (
       <ScreenContainer>
@@ -85,6 +71,21 @@ export function ClienteDetalheScreen() {
 
   const data = client.data;
   const visit = todayVisit.data;
+
+  function handleOpenMaps() {
+    Linking.openURL(
+      `https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`,
+    );
+  }
+
+  function handleOpenHistorico() {
+    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Historico');
+  }
+
+  function handleGoToCheckin() {
+    if (!visit) return;
+    navigation.navigate('Checkin', { clientId, visitId: visit.visitId });
+  }
 
   return (
     <ScreenContainer scroll>
@@ -109,8 +110,8 @@ export function ClienteDetalheScreen() {
             </Text>
           </View>
           <Badge
-            label={data.financialStatus === 'compliant' ? 'Adimplente' : 'Inadimplente'}
-            tone={data.financialStatus === 'compliant' ? 'success' : 'danger'}
+            label={FINANCIAL_STATUS_LABEL[data.financialStatus]}
+            tone={FINANCIAL_STATUS_TONE[data.financialStatus]}
           />
         </View>
 
@@ -161,8 +162,8 @@ export function ClienteDetalheScreen() {
         <View className="flex-row items-center justify-between">
           <Text className="text-ink-muted text-sm">Situação</Text>
           <Badge
-            label={data.financialStatus === 'compliant' ? 'Adimplente' : 'Inadimplente'}
-            tone={data.financialStatus === 'compliant' ? 'success' : 'danger'}
+            label={FINANCIAL_STATUS_LABEL[data.financialStatus]}
+            tone={FINANCIAL_STATUS_TONE[data.financialStatus]}
           />
         </View>
         <View className="flex-row items-center justify-between">

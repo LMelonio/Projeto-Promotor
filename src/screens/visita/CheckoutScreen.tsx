@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { useActiveVisit, useActivities, useClientRupturas } from './useVisitaData';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -9,6 +9,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { SelectableList } from '@/components/ui/SelectableList';
 import { ACTIVITY_CHECKLIST } from '@/models/Activity';
 import {
   VISIT_OUTCOME_LABEL,
@@ -124,50 +125,26 @@ export function CheckoutScreen() {
       </Card>
 
       <Text className="text-ink-muted text-xs font-bold mb-2 uppercase">Motivo da visita</Text>
-      <Card className="gap-0.5 mb-6">
-        {VISIT_REASONS.map((option, index) => {
-          const isSelected = reason === option;
-          return (
-            <Pressable
-              key={option}
-              onPress={() => setReason(option)}
-              className={`flex-row items-center gap-3 py-3 ${
-                index < VISIT_REASONS.length - 1 ? 'border-b border-line' : ''
-              }`}
-            >
-              <Feather
-                name={isSelected ? 'check-circle' : 'circle'}
-                size={20}
-                color={isSelected ? colors.brand : colors.inkMuted}
-              />
-              <Text className="text-ink text-sm flex-1">{VISIT_REASON_LABEL[option]}</Text>
-            </Pressable>
-          );
-        })}
-      </Card>
+      <SelectableList
+        items={VISIT_REASONS.map((option) => ({
+          value: option,
+          label: VISIT_REASON_LABEL[option],
+        }))}
+        value={reason}
+        onChange={setReason}
+        className="mb-6"
+      />
 
       <Text className="text-ink-muted text-xs font-bold mb-2 uppercase">Resultado da visita</Text>
-      <Card className="gap-0.5 mb-6">
-        {VISIT_OUTCOMES.map((option, index) => {
-          const isSelected = outcome === option;
-          return (
-            <Pressable
-              key={option}
-              onPress={() => setOutcome(option)}
-              className={`flex-row items-center gap-3 py-3 ${
-                index < VISIT_OUTCOMES.length - 1 ? 'border-b border-line' : ''
-              }`}
-            >
-              <Feather
-                name={isSelected ? 'check-circle' : 'circle'}
-                size={20}
-                color={isSelected ? colors.brand : colors.inkMuted}
-              />
-              <Text className="text-ink text-sm flex-1">{VISIT_OUTCOME_LABEL[option]}</Text>
-            </Pressable>
-          );
-        })}
-      </Card>
+      <SelectableList
+        items={VISIT_OUTCOMES.map((option) => ({
+          value: option,
+          label: VISIT_OUTCOME_LABEL[option],
+        }))}
+        value={outcome}
+        onChange={setOutcome}
+        className="mb-6"
+      />
 
       {checkOut.isError || locationError ? (
         <Text className="text-danger text-xs mb-3">

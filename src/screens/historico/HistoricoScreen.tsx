@@ -49,6 +49,27 @@ function formatVisitTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+/** Ícone + contagem pluralizada — mesmo formato para atividades/fotos/rupturas do card. */
+function StatItem({
+  icon,
+  count,
+  label,
+}: {
+  icon: keyof typeof Feather.glyphMap;
+  count: number;
+  label: string;
+}) {
+  return (
+    <View className="flex-row items-center gap-1.5">
+      <Feather name={icon} size={14} color={colors.inkMuted} />
+      <Text className="text-ink-muted text-xs">
+        {count} {label}
+        {count === 1 ? '' : 's'}
+      </Text>
+    </View>
+  );
+}
+
 function HistoryCard({ entry }: { entry: VisitHistoryEntry }) {
   return (
     <Card className="gap-2 mb-3">
@@ -65,24 +86,9 @@ function HistoryCard({ entry }: { entry: VisitHistoryEntry }) {
       </Text>
 
       <View className="flex-row items-center gap-4">
-        <View className="flex-row items-center gap-1.5">
-          <Feather name="check-square" size={14} color={colors.inkMuted} />
-          <Text className="text-ink-muted text-xs">
-            {entry.activityCount} atividade{entry.activityCount === 1 ? '' : 's'}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <Feather name="camera" size={14} color={colors.inkMuted} />
-          <Text className="text-ink-muted text-xs">
-            {entry.photoCount} foto{entry.photoCount === 1 ? '' : 's'}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <Feather name="alert-triangle" size={14} color={colors.inkMuted} />
-          <Text className="text-ink-muted text-xs">
-            {entry.rupturaCount} ruptura{entry.rupturaCount === 1 ? '' : 's'}
-          </Text>
-        </View>
+        <StatItem icon="check-square" count={entry.activityCount} label="atividade" />
+        <StatItem icon="camera" count={entry.photoCount} label="foto" />
+        <StatItem icon="alert-triangle" count={entry.rupturaCount} label="ruptura" />
       </View>
 
       <View className="flex-row items-center gap-2 flex-wrap mt-0.5">

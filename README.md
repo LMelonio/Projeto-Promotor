@@ -1,15 +1,15 @@
 # Lynkz Promotor — App Mobile
 
-Aplicativo de campo para promotores técnicos da Lynkz Distribuidora (Avert, Boehringer, Organnact). Cobre o fluxo completo de visita: login, dashboard, carteira de clientes, check-in/check-out georreferenciado, atividades com fotos obrigatórias e registro de rupturas.
+Aplicativo de campo para promotores técnicos da Lynkz Distribuidora (Avert, Boehringer, Organnact). Cobre o fluxo completo de visita: login, dashboard, carteira de clientes, check-in/check-out dedicados e georreferenciados, atividades (questionário, fotos, ruptura), histórico e perfil.
 
-Este repositório é o código-fonte real do app — não é mais protótipo/wireframe. As decisões de UX/UI, banco de dados e Design System já aprovadas nas etapas anteriores do projeto foram usadas como fonte da verdade para esta implementação (nenhuma tela ou token de cor foi inventado agora).
+Este repositório é o código-fonte real do app, não mais um protótipo. As decisões de UX/UI, banco de dados e Design System aprovadas nas etapas anteriores do projeto serviram de fonte da verdade para esta implementação — nenhuma tela ou token de cor foi inventado agora.
 
 ## Stack
 
 | Camada | Escolha | Por quê |
 |---|---|---|
 | Runtime | Expo (React Native + TypeScript) | Único codebase para iOS/Android, câmera/GPS/notificações via módulos oficiais Expo, build gerenciado via EAS |
-| Backend | Supabase (Postgres + PostGIS + Storage + Auth + RLS) | Já existe e está pronto (`lynkz_supabase/migrations/`) |
+| Backend | Supabase (Postgres + PostGIS + Storage + Auth + RLS) | Planejado; nenhum projeto real conectado ainda — o app roda em modo mock por padrão (ver `docs/DECISIONS.md`, item 17) |
 | Estado remoto | TanStack Query | Cache, retry automático e invalidação — essencial com a rede instável de campo |
 | Estado local | Zustand | Sessão de auth; leve, sem boilerplate de Redux |
 | Estilo | NativeWind (Tailwind) | Tokens do Design System aplicados via `tailwind.config.js` |
@@ -18,7 +18,7 @@ Este repositório é o código-fonte real do app — não é mais protótipo/wir
 
 Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 
-## Estado atual (Fase 4 de N)
+## Estado atual (4 fases concluídas + reconciliação com a Documentação Funcional)
 
 ✅ Implementado e testado:
 - Configuração completa do projeto (TS, lint, Tailwind, Jest, Expo config com permissões)
@@ -44,6 +44,7 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - A lista "Rupturas deste cliente" só reflete um registro feito offline depois que a fila sincronizar de verdade (ver `docs/DECISIONS.md`, item 14)
 - Modo escuro: a tela de Aparência seleciona e salva a preferência, mas o app inteiro continua com as cores fixas em tema claro — ver `docs/DECISIONS.md`, item 26
 - Fluxo de solicitação/aprovação de atualização de endereço de cliente: só a notificação de resultado ("Endereço aprovado"/"recusado") existe; o fluxo que a origina (editar endereço, fila de aprovação do back-office) não foi implementado — ver `docs/DECISIONS.md`, item 27
+- Filtro de período por calendário customizado no Histórico: hoje só os presets Hoje/7 dias/30 dias/Todos — ver `docs/DECISIONS.md`, item 25
 
 ## Como rodar
 
@@ -54,7 +55,7 @@ npm start               # abre o Metro Bundler / Expo Go
 
 **Ainda não tem um projeto Supabase?** Sem problema — sem o arquivo `.env`, o app sobe automaticamente em **modo mock** (dados fictícios em memória, ver `docs/DECISIONS.md` item 17): login aceita qualquer e-mail/senha e todas as telas mostram dados de exemplo. Assim que tiver um projeto Supabase real, rode `cp .env.example .env` e preencha as credenciais — o app volta a usar dados reais automaticamente, nenhum código muda.
 
-Também é possível abrir um preview no navegador com `npm run web` (útil para ver rapidamente telas/navegação — câmera, GPS e biometria não funcionam em navegador, só em Expo Go/dispositivo real).
+Também é possível abrir um preview no navegador com `npm run web` (útil para ver rapidamente telas/navegação — câmera e GPS funcionam via APIs do próprio navegador; só biometria exige Expo Go/dispositivo real).
 
 Scripts úteis:
 

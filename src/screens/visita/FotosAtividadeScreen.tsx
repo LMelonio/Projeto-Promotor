@@ -37,22 +37,6 @@ export function FotosAtividadeScreen() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [cameraOpen, setCameraOpen] = useState(false);
 
-  async function handleConfirmPhotos(uris: string[]) {
-    setCameraOpen(false);
-    setPhotos((prev) => [...prev, ...uris]);
-  }
-
-  async function handleFinish() {
-    if (!activeVisit.data || !promoterId || photos.length < REQUIRED_COUNT) return;
-    await registerActivity.mutateAsync({
-      clientId: activeVisit.data.clientId,
-      promoterId,
-      kind: 'photos',
-      photoCount: photos.length,
-    });
-    navigation.goBack();
-  }
-
   if (activeVisit.isLoading) {
     return (
       <ScreenContainer>
@@ -71,6 +55,22 @@ export function FotosAtividadeScreen() {
 
   const missing = Math.max(0, REQUIRED_COUNT - photos.length);
   const slots = Math.max(REQUIRED_COUNT, photos.length);
+
+  function handleConfirmPhotos(uris: string[]) {
+    setCameraOpen(false);
+    setPhotos((prev) => [...prev, ...uris]);
+  }
+
+  async function handleFinish() {
+    if (!activeVisit.data || !promoterId || photos.length < REQUIRED_COUNT) return;
+    await registerActivity.mutateAsync({
+      clientId: activeVisit.data.clientId,
+      promoterId,
+      kind: 'photos',
+      photoCount: photos.length,
+    });
+    navigation.goBack();
+  }
 
   return (
     <ScreenContainer scroll>
