@@ -2,6 +2,7 @@ import { fakeClientRepository } from '../fakes/FakeClientRepository';
 import type { IClientRepository } from '../interfaces/IClientRepository';
 import { useMockData } from '@/config/env';
 import type { Client, ClientListItem, TodayVisit, VisitStatus } from '@/models/Client';
+import type { VisitOutcome, VisitReason } from '@/models/Visit';
 import { supabase } from '@/services/supabase/client';
 
 /**
@@ -145,21 +146,25 @@ class ClientRepository implements IClientRepository {
     }
   }
 
-  async checkOut(
-    visitId: string,
-    coords: { latitude: number; longitude: number },
-    occurredAt: string,
-  ): Promise<void> {
+  async checkOut(input: {
+    visitId: string;
+    coords: { latitude: number; longitude: number };
+    occurredAt: string;
+    reason: VisitReason;
+    outcome: VisitOutcome;
+  }): Promise<void> {
     const { error } = await supabase
       .schema('lynkz')
       .from('visits')
       .update({
         status: 'completed',
-        checked_out_at: occurredAt,
-        checked_out_latitude: coords.latitude,
-        checked_out_longitude: coords.longitude,
+        checked_out_at: input.occurredAt,
+        checked_out_latitude: input.coords.latitude,
+        checked_out_longitude: input.coords.longitude,
+        reason: input.reason,
+        outcome: input.outcome,
       })
-      .eq('id', visitId);
+      .eq('id', input.visitId);
 
     if (error) {
       throw new Error('Não foi possível registrar o check-out agora. Tente novamente.');

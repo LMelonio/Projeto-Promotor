@@ -31,6 +31,7 @@ export type VisitaStackParamList = {
   Questionario: undefined;
   FotosAtividade: undefined;
   Ruptura: undefined;
+  Checkout: undefined;
 };
 
 export type MainTabParamList = {

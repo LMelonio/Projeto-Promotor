@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ACTIVITY_CHECKLIST, type Activity } from '@/models/Activity';
 import type { MainTabParamList, VisitaStackParamList } from '@/navigation/types';
-import { useCheckOut } from '@/screens/clientes/useClientesData';
-import { useLocation } from '@/shared/hooks/useLocation';
 import { elapsedLabel } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
@@ -36,8 +34,6 @@ export function VisitaScreen() {
 
   const activities = useActivities(visitId);
   const registerActivity = useRegisterActivity(visitId);
-  const checkOut = useCheckOut(promoterId, activeVisit.data?.clientId);
-  const { requestLocation, errorMessage: locationError } = useLocation();
 
   function handleGoToClientes() {
     navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Clientes');
@@ -51,13 +47,6 @@ export function VisitaScreen() {
       kind: 'price_check',
       photoCount: 0,
     });
-  }
-
-  async function handleCheckOut() {
-    if (!activeVisit.data) return;
-    const coords = await requestLocation();
-    if (!coords) return;
-    await checkOut.mutateAsync({ visitId: activeVisit.data.visitId, coords });
   }
 
   if (activeVisit.isLoading) {
@@ -179,18 +168,11 @@ export function VisitaScreen() {
         })}
       </Card>
 
-      {checkOut.isError || locationError ? (
-        <Text className="text-danger text-xs mb-3">
-          {locationError ?? 'Não foi possível finalizar a visita agora. Tente novamente.'}
-        </Text>
-      ) : null}
-
       <Button
         label="Finalizar visita"
         variant="success"
         disabled={!canFinish}
-        loading={checkOut.isPending}
-        onPress={handleCheckOut}
+        onPress={() => navigation.navigate('Checkout')}
       />
       {!canFinish ? (
         <Text className="text-ink-muted text-xs text-center mt-2">

@@ -13,7 +13,7 @@ type Handler = (payload: any) => Promise<unknown>;
  */
 const SYNC_HANDLERS: Record<SyncKind, Handler> = {
   check_in: (p) => clientRepository.checkIn(p.visitId, p.coords, p.occurredAt),
-  check_out: (p) => clientRepository.checkOut(p.visitId, p.coords, p.occurredAt),
+  check_out: (p) => clientRepository.checkOut(p),
   register_activity: (p) => visitRepository.registerActivity(p),
   submit_questionnaire: (p) => visitRepository.submitQuestionnaire(p.visitId, p.answers),
   register_ruptura: (p) => visitRepository.registerRuptura(p),

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { TodayVisit } from '@/models/Client';
+import type { VisitOutcome, VisitReason } from '@/models/Visit';
 import { clientRepository } from '@/repositories/implementations/ClientRepository';
 import { runOrQueue } from '@/services/sync/syncEngine';
 import type { Coordinates } from '@/shared/utils/geo';
@@ -73,9 +74,25 @@ export function useCheckOut(promoterId: string | undefined, clientId: string | u
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ visitId, coords }: { visitId: string; coords: Coordinates }) => {
+    mutationFn: async ({
+      visitId,
+      coords,
+      reason,
+      outcome: visitOutcome,
+    }: {
+      visitId: string;
+      coords: Coordinates;
+      reason: VisitReason;
+      outcome: VisitOutcome;
+    }) => {
       const occurredAt = new Date().toISOString();
-      const outcome = await runOrQueue<void>('check_out', { visitId, coords, occurredAt });
+      const outcome = await runOrQueue<void>('check_out', {
+        visitId,
+        coords,
+        occurredAt,
+        reason,
+        outcome: visitOutcome,
+      });
       return { outcome, occurredAt };
     },
     onSuccess: ({ outcome, occurredAt }) => {

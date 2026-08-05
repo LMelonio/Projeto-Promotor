@@ -67,6 +67,9 @@ export interface Database {
           /** Assumido junto do check-out georreferenciado (Fase 4) — mesmo aviso acima. */
           checked_out_latitude: number | null;
           checked_out_longitude: number | null;
+          /** Capturados no Check-out (ver `docs/DECISIONS.md`, item 22) — nulos até lá. */
+          reason: 'sale' | 'training' | 'routine' | 'audit' | null;
+          outcome: 'completed' | 'client_absent' | 'closed' | null;
         };
         Update: {
           status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
@@ -76,6 +79,8 @@ export interface Database {
           checked_out_at?: string | null;
           checked_out_latitude?: number | null;
           checked_out_longitude?: number | null;
+          reason?: 'sale' | 'training' | 'routine' | 'audit' | null;
+          outcome?: 'completed' | 'client_absent' | 'closed' | null;
         };
       };
       /**

@@ -7,9 +7,11 @@ import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { ActivityCameraModal } from './components/ActivityCameraModal';
 import { EanScannerModal } from './components/EanScannerModal';
 import {
+  useActivities,
   useActiveVisit,
   useAssignedProducts,
   useClientRupturas,
+  useRegisterActivity,
   useRegisterRuptura,
 } from './useVisitaData';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -48,6 +50,9 @@ export function RupturaScreen() {
   const products = useAssignedProducts(promoterId);
   const rupturas = useClientRupturas(clientId);
   const registerRuptura = useRegisterRuptura(clientId);
+  const activities = useActivities(activeVisit.data?.visitId);
+  const registerActivity = useRegisterActivity(activeVisit.data?.visitId);
+  const hasRupturaActivity = (activities.data ?? []).some((a) => a.kind === 'ruptura');
 
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -115,6 +120,15 @@ export function RupturaScreen() {
       photoCount: 1,
       reportedAt: new Date().toISOString(),
     });
+
+    if (!hasRupturaActivity && promoterId && activeVisit.data) {
+      await registerActivity.mutateAsync({
+        clientId,
+        promoterId,
+        kind: 'ruptura',
+        photoCount: 1,
+      });
+    }
 
     setLastOutcome(outcome.synced ? 'synced' : 'queued');
     setSelectedProduct(null);

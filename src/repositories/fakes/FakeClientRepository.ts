@@ -1,6 +1,7 @@
 import type { IClientRepository } from '../interfaces/IClientRepository';
 import { fakeClients, fakeStore, fakeVisits } from './fakeStore';
 import type { Client, ClientListItem, TodayVisit } from '@/models/Client';
+import type { VisitOutcome, VisitReason } from '@/models/Visit';
 import type { Coordinates } from '@/shared/utils/geo';
 
 /** Carteira de Clientes fictícia (modo mock) — deriva roteiro/status a partir de `fakeVisits`. */
@@ -65,8 +66,14 @@ class FakeClientRepository implements IClientRepository {
     fakeStore.checkIn(visitId, coords, occurredAt);
   }
 
-  async checkOut(visitId: string, coords: Coordinates, occurredAt: string): Promise<void> {
-    fakeStore.checkOut(visitId, coords, occurredAt);
+  async checkOut(input: {
+    visitId: string;
+    coords: Coordinates;
+    occurredAt: string;
+    reason: VisitReason;
+    outcome: VisitOutcome;
+  }): Promise<void> {
+    fakeStore.checkOut(input.visitId, input.coords, input.occurredAt, input.reason, input.outcome);
   }
 }
 

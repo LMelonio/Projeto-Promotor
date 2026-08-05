@@ -4,6 +4,7 @@ import type { Product } from '@/models/Product';
 import type { Promoter } from '@/models/Promoter';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { Ruptura, RupturaSeverity } from '@/models/Ruptura';
+import type { VisitOutcome, VisitReason } from '@/models/Visit';
 import type { Coordinates } from '@/shared/utils/geo';
 
 /**
@@ -23,6 +24,8 @@ interface FakeVisit {
   status: VisitStatus;
   checkedInAt: string | null;
   checkedOutAt: string | null;
+  reason: VisitReason | null;
+  outcome: VisitOutcome | null;
 }
 
 interface FakeClient {
@@ -121,6 +124,8 @@ export const fakeVisits: FakeVisit[] = [
     status: 'scheduled',
     checkedInAt: null,
     checkedOutAt: null,
+    reason: null,
+    outcome: null,
   },
   {
     id: 'V002',
@@ -131,6 +136,8 @@ export const fakeVisits: FakeVisit[] = [
     status: 'scheduled',
     checkedInAt: null,
     checkedOutAt: null,
+    reason: null,
+    outcome: null,
   },
   {
     id: 'V003',
@@ -141,6 +148,8 @@ export const fakeVisits: FakeVisit[] = [
     status: 'scheduled',
     checkedInAt: null,
     checkedOutAt: null,
+    reason: null,
+    outcome: null,
   },
   {
     id: 'V004',
@@ -151,6 +160,8 @@ export const fakeVisits: FakeVisit[] = [
     status: 'completed',
     checkedInAt: timeToday(11, 5, -1),
     checkedOutAt: timeToday(11, 47, -1),
+    reason: 'routine',
+    outcome: 'completed',
   },
 ];
 
@@ -219,11 +230,19 @@ export const fakeStore = {
     visit.checkedInAt = occurredAt;
   },
 
-  checkOut(visitId: string, _coords: Coordinates, occurredAt: string): void {
+  checkOut(
+    visitId: string,
+    _coords: Coordinates,
+    occurredAt: string,
+    reason: VisitReason,
+    outcome: VisitOutcome,
+  ): void {
     const visit = fakeVisits.find((v) => v.id === visitId);
     if (!visit) return;
     visit.status = 'completed';
     visit.checkedOutAt = occurredAt;
+    visit.reason = reason;
+    visit.outcome = outcome;
   },
 
   addActivity(input: { visitId: string; kind: ActivityKind; photoCount: number }): Activity {

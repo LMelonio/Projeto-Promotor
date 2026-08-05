@@ -3,7 +3,12 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { useActiveVisit, useQuestionnaire, useSubmitQuestionnaire } from './useVisitaData';
+import {
+  useActiveVisit,
+  useQuestionnaire,
+  useRegisterActivity,
+  useSubmitQuestionnaire,
+} from './useVisitaData';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
@@ -28,6 +33,7 @@ export function QuestionarioScreen() {
 
   const questionnaire = useQuestionnaire(visitId);
   const submitQuestionnaire = useSubmitQuestionnaire(visitId);
+  const registerActivity = useRegisterActivity(visitId);
 
   const [answers, setAnswers] = useState<QuestionnaireAnswers>({});
   const [step, setStep] = useState(0);
@@ -71,7 +77,14 @@ export function QuestionarioScreen() {
       return;
     }
 
+    if (!activeVisit.data || !promoterId) return;
     await submitQuestionnaire.mutateAsync(answers);
+    await registerActivity.mutateAsync({
+      clientId: activeVisit.data.clientId,
+      promoterId,
+      kind: 'questionnaire',
+      photoCount: 0,
+    });
     navigation.goBack();
   }
 
@@ -126,7 +139,7 @@ export function QuestionarioScreen() {
         })}
       </Card>
 
-      {submitQuestionnaire.isError ? (
+      {submitQuestionnaire.isError || registerActivity.isError ? (
         <Text className="text-danger text-xs mb-3">
           Não foi possível salvar o questionário agora. Tente novamente.
         </Text>
@@ -144,7 +157,7 @@ export function QuestionarioScreen() {
           label={isLast ? 'Concluir' : 'Próxima'}
           className="flex-1"
           disabled={selected === undefined}
-          loading={submitQuestionnaire.isPending}
+          loading={submitQuestionnaire.isPending || registerActivity.isPending}
           onPress={handleNext}
         />
       </View>

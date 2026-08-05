@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import type { VisitaStackParamList } from './types';
+import { CheckoutScreen } from '@/screens/visita/CheckoutScreen';
 import { FotosAtividadeScreen } from '@/screens/visita/FotosAtividadeScreen';
 import { QuestionarioScreen } from '@/screens/visita/QuestionarioScreen';
 import { RupturaScreen } from '@/screens/visita/RupturaScreen';
@@ -10,7 +11,7 @@ const Stack = createNativeStackNavigator<VisitaStackParamList>();
 
 /**
  * Stack aninhada da aba "Visita": checklist de Atividades da visita em
- * andamento → Questionário / Fotos / Ruptura. Mesmo padrão de
+ * andamento → Questionário / Fotos / Ruptura / Check-out. Mesmo padrão de
  * `ClientesStackNavigator` (ver `docs/ARCHITECTURE.md`).
  */
 export function VisitaStackNavigator() {
@@ -20,6 +21,7 @@ export function VisitaStackNavigator() {
       <Stack.Screen name="Questionario" component={QuestionarioScreen} />
       <Stack.Screen name="FotosAtividade" component={FotosAtividadeScreen} />
       <Stack.Screen name="Ruptura" component={RupturaScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} />
     </Stack.Navigator>
   );
 }

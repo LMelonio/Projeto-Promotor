@@ -1,4 +1,5 @@
 import type { Client, ClientListItem, TodayVisit } from '@/models/Client';
+import type { VisitOutcome, VisitReason } from '@/models/Visit';
 
 export interface IClientRepository {
   listPortfolio(promoterId: string): Promise<ClientListItem[]>;
@@ -9,9 +10,11 @@ export interface IClientRepository {
     coords: { latitude: number; longitude: number },
     occurredAt: string,
   ): Promise<void>;
-  checkOut(
-    visitId: string,
-    coords: { latitude: number; longitude: number },
-    occurredAt: string,
-  ): Promise<void>;
+  checkOut(input: {
+    visitId: string;
+    coords: { latitude: number; longitude: number };
+    occurredAt: string;
+    reason: VisitReason;
+    outcome: VisitOutcome;
+  }): Promise<void>;
 }
