@@ -201,15 +201,15 @@ export interface Database {
     Views: {
       /**
        * View agregada (security_invoker) por trás do resumo mostrado na Home:
-       * faturamento do mês, % de positivação, contagem de visitas do dia,
-       * pendências e tempo médio de visita — já filtrada por RLS ao promotor
-       * autenticado.
+       * faturamento do mês, contagem de clientes positivados, contagem de
+       * visitas do dia, pendências e tempo médio de visita — já filtrada por
+       * RLS ao promotor autenticado.
        */
       promoter_dashboard_summary: {
         Row: {
           promoter_id: string;
           monthly_revenue: number;
-          positivation_rate: number;
+          positivation_count: number;
           visits_today_done: number;
           visits_today_total: number;
           pending_count: number;

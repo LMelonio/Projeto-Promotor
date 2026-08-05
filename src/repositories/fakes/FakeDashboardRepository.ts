@@ -12,7 +12,7 @@ class FakeDashboardRepository implements IDashboardRepository {
 
     return {
       monthlyRevenue: 128450,
-      positivationRate: 0.68,
+      positivationCount: 48,
       visitsDoneToday: todayVisits.filter((v) => v.status === 'completed').length,
       visitsTotalToday: todayVisits.length,
       pendingCount: 2,

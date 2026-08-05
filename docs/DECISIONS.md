@@ -46,6 +46,7 @@ Registro das escolhas técnicas do projeto, com alternativas consideradas e o mo
 **Feedback de uso real (usuário testou o app de verdade)**
 28. [Check-in vai direto para Atividades, e a aba Clientes não fica mais travada num cliente](#d28)
 29. [Modo escuro de verdade (CSS variables + `colorScheme` do NativeWind)](#d29)
+30. [Positivação é contagem de clientes, não taxa](#d30)
 
 ---
 
@@ -319,3 +320,10 @@ O usuário enviou `Documentacao_Funcional_Lynkz_Promotor.pdf` — a especificaç
 4. A troca de tema em si usa a API `colorScheme` do NativeWind (`nativewind`, que reexporta de `react-native-css-interop`) — `colorScheme.set('light' | 'dark' | 'system')` adiciona/remove a classe `dark` no documento (web) ou avisa o runtime de estilos (nativo); funciona igual nas duas plataformas. Novo hook `useThemeSync` (`shared/hooks`), montado uma vez em `AppProviders`, chama `colorScheme.set()` toda vez que `usePreferencesStore().appearance` mudar — inclusive na primeira renderização, depois que o valor persistido termina de reidratar do `AsyncStorage`. "Automático" mapeia para `'system'` (segue o tema do aparelho); "Claro"/"Escuro" fixam manualmente.
 **O que as CSS variables NÃO cobrem — ícones e estilos inline**: a prop `color` de ícones `Feather` (e qualquer estilo inline com hex) precisa de uma cor já resolvida, não de uma className — não dá pra usar CSS variables ali. Por isso `src/theme/colors.ts` ganhou `lightColors`/`darkColors` (dois objetos completos) e um hook `useThemeColors()` que devolve o objeto certo conforme o tema atual (via `useColorScheme()` do NativeWind, reativo). Todas as ~30 telas/componentes que importavam o antigo `colors` estático foram migrados para `const colors = useThemeColors();` dentro do próprio componente — troca mecânica (o nome da variável local continua `colors`, então nenhuma outra linha do arquivo muda). Em 2 arquivos (`RouteItemRow.tsx`, `NotificacoesScreen.tsx`) um `Record` de cores por status/tipo estava definido no escopo do módulo (fora de qualquer componente, onde não se pode chamar hook) — movido para dentro do componente que o usa.
 **Confirmado**: testado via Playwright — trocar para "Escuro" recolore o app inteiro (fundos, cards, texto, bordas E ícones) em todas as telas visitadas; a preferência persiste depois de recarregar a página; voltar para "Claro" restaura o tema original corretamente; toda a suíte de regressão (fluxo completo de visita, ruptura, alterar senha) roda sem quebrar em modo claro (padrão). typecheck/lint/test (18/18) limpos.
+
+<a id="d30"></a>
+### 30. Positivação é contagem de clientes, não taxa
+
+**Contexto**: o card "Positivação" da Home mostrava uma taxa (`68%`, campo `positivationRate: number` 0–1). O comparativo com o wireframe já tinha marcado isso como "a confirmar" (o print mostra "42 clientes"). O usuário confirmou: é contagem de clientes positivados no mês, não percentual.
+**Escolhido**: `DashboardSummary.positivationRate` (0–1) virou `positivationCount` (inteiro) — model, `FakeDashboardRepository` (`48`), `DashboardRepository` (coluna `positivation_count` em vez de `positivation_rate`) e `HomeScreen` (`"48 clientes"` em vez de `formatPercentage(...)`) atualizados juntos. Assumido schema: a view `promoter_dashboard_summary` precisa expor `positivation_count` (inteiro) em vez de `positivation_rate` (float) — reconciliar ao criar/gerar o schema real (ver item 31).
+**Confirmado**: testado via Playwright — card mostra "48 clientes". typecheck/lint/test (18/18) limpos.

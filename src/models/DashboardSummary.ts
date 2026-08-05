@@ -6,7 +6,8 @@
  */
 export interface DashboardSummary {
   monthlyRevenue: number;
-  positivationRate: number; // 0–1 (ex.: 0.42 = 42%)
+  /** Contagem de clientes positivados no mês (ex.: 48) — não é taxa/percentual. */
+  positivationCount: number;
   visitsDoneToday: number;
   visitsTotalToday: number;
   pendingCount: number;

@@ -13,7 +13,7 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import type { HomeStackParamList, MainTabParamList } from '@/navigation/types';
 import { useNotifications } from '@/screens/notificacoes/useNotificacoesData';
 import { useNetworkStatus } from '@/shared/hooks/useNetworkStatus';
-import { formatCurrencyBRL, formatPercentage } from '@/shared/utils/date';
+import { formatCurrencyBRL } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeColors } from '@/theme';
 
@@ -115,7 +115,7 @@ export function HomeScreen() {
         <>
           <View className="flex-row gap-3 mb-3">
             <KpiCard label="Faturamento" value={formatCurrencyBRL(data.monthlyRevenue)} emphasis />
-            <KpiCard label="Positivação" value={formatPercentage(data.positivationRate)} emphasis />
+            <KpiCard label="Positivação" value={`${data.positivationCount} clientes`} emphasis />
           </View>
 
           <View className="flex-row gap-3 mb-6">

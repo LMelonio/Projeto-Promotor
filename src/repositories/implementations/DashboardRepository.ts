@@ -20,7 +20,7 @@ class DashboardRepository implements IDashboardRepository {
       .schema('lynkz')
       .from('promoter_dashboard_summary')
       .select(
-        'monthly_revenue, positivation_rate, visits_today_done, visits_today_total, pending_count, average_visit_minutes',
+        'monthly_revenue, positivation_count, visits_today_done, visits_today_total, pending_count, average_visit_minutes',
       )
       .eq('promoter_id', promoterId)
       .single();
@@ -31,7 +31,7 @@ class DashboardRepository implements IDashboardRepository {
 
     return {
       monthlyRevenue: data.monthly_revenue,
-      positivationRate: data.positivation_rate,
+      positivationCount: data.positivation_count,
       visitsDoneToday: data.visits_today_done,
       visitsTotalToday: data.visits_today_total,
       pendingCount: data.pending_count,
