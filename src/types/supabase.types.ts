@@ -30,6 +30,9 @@ export interface Database {
           email: string;
           phone: string | null;
           supplier: string;
+          /** Ver `docs/DECISIONS.md`, item 26 — wireframe de Perfil. */
+          role: string;
+          city: string;
           status: 'active' | 'inactive';
           deleted_at: string | null;
         };

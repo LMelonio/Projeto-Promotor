@@ -6,11 +6,14 @@
  * dia o schema mudar (ex.: renomear coluna, dividir tabela), só o
  * Repository/mapper muda — nenhuma tela quebra.
  */
+/** `role`/`city` adicionados a partir do wireframe de Perfil — ver `docs/DECISIONS.md`, item 26. */
 export interface Promoter {
   id: string;
   fullName: string;
   email: string;
   phone: string | null;
   supplier: string;
+  role: string;
+  city: string;
   isActive: boolean;
 }

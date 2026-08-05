@@ -48,11 +48,39 @@ class AuthRepository implements IAuthRepository {
     await supabase.auth.signOut();
   }
 
+  /**
+   * O SDK do Supabase Auth não expõe uma checagem isolada de "senha atual" —
+   * `updateUser` troca a senha de qualquer sessão já autenticada, sem pedir a
+   * anterior. Por isso a reautenticação com `signInWithPassword` acontece
+   * aqui antes de trocar: é a própria confirmação de que quem está pedindo a
+   * troca realmente sabe a senha atual.
+   */
+  async updatePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const email = sessionData.session?.user.email;
+    if (!email) {
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (reauthError) {
+      throw new Error('Senha atual incorreta.');
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      throw new Error('Não foi possível alterar sua senha agora. Tente novamente.');
+    }
+  }
+
   private async fetchPromoterProfile(authUserId: string): Promise<Promoter> {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('promoters')
-      .select('id, full_name, email, phone, supplier, status')
+      .select('id, full_name, email, phone, supplier, role, city, status')
       .eq('auth_user_id', authUserId)
       .is('deleted_at', null)
       .single();
@@ -70,6 +98,8 @@ class AuthRepository implements IAuthRepository {
       email: data.email,
       phone: data.phone,
       supplier: data.supplier,
+      role: data.role,
+      city: data.city,
       isActive: data.status === 'active',
     };
   }

@@ -66,6 +66,8 @@ export const FAKE_PROMOTER: Promoter = {
   email: 'joao.avert@lynkzdistribuidora.com.br',
   phone: '(99) 98111-2201',
   supplier: 'AVERT',
+  role: 'Promotor técnico',
+  city: 'Imperatriz',
   isActive: true,
 };
 

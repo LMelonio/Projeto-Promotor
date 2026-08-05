@@ -35,12 +35,24 @@ export type VisitaStackParamList = {
   Checkout: undefined;
 };
 
+/**
+ * Stack aninhada dentro da aba "Perfil" (wireframe de Perfil, ver
+ * `docs/DECISIONS.md`, item 26): tela principal + sub-telas de configuração.
+ */
+export type PerfilStackParamList = {
+  PerfilHome: undefined;
+  AlterarSenha: undefined;
+  NotificacoesConfig: undefined;
+  Aparencia: undefined;
+  Ajuda: undefined;
+};
+
 export type MainTabParamList = {
   Inicio: undefined;
   Clientes: NavigatorScreenParams<ClientesStackParamList> | undefined;
   Visita: NavigatorScreenParams<VisitaStackParamList> | undefined;
   Historico: undefined;
-  Perfil: undefined;
+  Perfil: NavigatorScreenParams<PerfilStackParamList> | undefined;
 };
 
 export type RootStackParamList = {

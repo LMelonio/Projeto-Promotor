@@ -33,13 +33,14 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - **Visita em andamento**: checklist de **Atividades** (Questionário de PDV, Fotos da gôndola, Verificação de preços, Registro de ruptura — reescrito a partir da Documentação Funcional real, ver `docs/DECISIONS.md` item 21), **Questionário de PDV** como assistente de 8 perguntas de múltipla escolha, **Fotos** com galeria de miniaturas reais, **Ruptura** com leitura de EAN + gravidade + foto obrigatória
 - Tela de **Check-out** dedicada (resumo da visita + motivo + resultado, georreferenciado — ver `docs/DECISIONS.md` item 22)
 - Tela de **Histórico** de visitas finalizadas (filtros de período Hoje/7 dias/30 dias, busca por cliente, resultado da visita, status de sincronização e contagem de rupturas por visita — ver `docs/DECISIONS.md` item 25)
-- Tela de **Perfil completo** (dados do promotor + status da fila de sincronização + logout)
+- Tela de **Perfil completo** (cargo/cidade, status da fila de sincronização, Alterar senha, Notificações, Aparência, Ajuda e sobre, logout — ver `docs/DECISIONS.md` item 26)
 - **Fila de sincronização offline** (SQLite + `services/sync`): check-in/check-out/Atividade/Questionário/Ruptura nunca se perdem por falta de sinal — ficam na fila e reenviam sozinhos quando a conexão volta (ou manualmente, pelo Perfil)
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint
 
 ⏭️ Não implementado ainda (todas as 4 fases planejadas foram concluídas — ver limitações conhecidas abaixo e `docs/DECISIONS.md`):
 - Upload real dos binários das fotos de Atividade para o Supabase Storage (hoje só a contagem é sincronizada — ver `docs/DECISIONS.md`, itens 13 e 14)
 - A lista "Rupturas deste cliente" só reflete um registro feito offline depois que a fila sincronizar de verdade (ver `docs/DECISIONS.md`, item 14)
+- Modo escuro: a tela de Aparência seleciona e salva a preferência, mas o app inteiro continua com as cores fixas em tema claro — ver `docs/DECISIONS.md`, item 26
 
 ## Como rodar
 

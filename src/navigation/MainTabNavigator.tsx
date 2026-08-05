@@ -3,11 +3,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { ClientesStackNavigator } from './ClientesStackNavigator';
 import { ElevatedTabButton } from './ElevatedTabButton';
+import { PerfilStackNavigator } from './PerfilStackNavigator';
 import { VisitaStackNavigator } from './VisitaStackNavigator';
 import type { MainTabParamList } from './types';
 import { HistoricoScreen } from '@/screens/historico/HistoricoScreen';
 import { HomeScreen } from '@/screens/home/HomeScreen';
-import { PerfilScreen } from '@/screens/perfil/PerfilScreen';
 import { colors } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -64,7 +64,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Perfil"
-        component={PerfilScreen}
+        component={PerfilStackNavigator}
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, size }) => <Feather name="user" color={color} size={size} />,

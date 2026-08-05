@@ -15,4 +15,5 @@ export interface IAuthRepository {
   signInWithPassword(email: string, password: string): Promise<AuthSession>;
   getActiveSession(): Promise<AuthSession | null>;
   signOut(): Promise<void>;
+  updatePassword(currentPassword: string, newPassword: string): Promise<void>;
 }
