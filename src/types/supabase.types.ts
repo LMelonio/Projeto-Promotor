@@ -4,9 +4,10 @@
  * Este arquivo existe apenas para o projeto compilar enquanto o app ainda
  * não está conectado a uma instância real do Supabase neste ambiente.
  *
- * Assim que houver acesso ao projeto Supabase (mesmo o de desenvolvimento,
- * já com as migrations em /mnt/user-data/outputs/lynkz_supabase/migrations/
- * aplicadas), este arquivo deve ser REGERADO automaticamente com:
+ * As migrations reais já existem em `supabase/migrations/` (ver
+ * `docs/DECISIONS.md`, item 31). Assim que houver um projeto Supabase
+ * (`supabase link` + `supabase db push`, ou o SQL aplicado manualmente),
+ * este arquivo deve ser REGERADO automaticamente com:
  *
  *   npm run gen:types
  *
@@ -14,10 +15,9 @@
  * o caminho correto é sempre gerar a partir do schema real, para que
  * TypeScript pegue qualquer divergência em tempo de compilação.
  *
- * Os campos abaixo cobrem apenas o necessário para as telas já implementadas
- * nesta primeira fase (Login + Home). Os nomes seguem a convenção do projeto
- * (snake_case, inglês, schema `lynkz`) e as decisões já documentadas
- * (soft delete via deleted_at, auth_user_id anulável em promoters, etc.).
+ * Os campos abaixo já foram escritos para bater exatamente com as migrations
+ * em `supabase/migrations/` — divergências futuras devem ser resolvidas lá,
+ * não aqui.
  */
 export interface Database {
   lynkz: {

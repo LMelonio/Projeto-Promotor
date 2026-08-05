@@ -61,6 +61,13 @@ class VisitRepository implements IVisitRepository {
     }));
   }
 
+  /**
+   * `upsert` (não `insert`) porque o schema tem `unique (visit_id, kind)` —
+   * refazer uma atividade (ex.: tirar as fotos de novo) substitui o registro
+   * existente em vez de falhar por violação de unicidade ou duplicar linha.
+   * Espelha o filtro otimista já feito no client em `useVisitaData.ts`
+   * (`.filter((a) => a.kind !== variables.kind)` antes de anexar a nova).
+   */
   async registerActivity(input: {
     visitId: string;
     clientId: string;
@@ -71,14 +78,17 @@ class VisitRepository implements IVisitRepository {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('activities')
-      .insert({
-        visit_id: input.visitId,
-        client_id: input.clientId,
-        promoter_id: input.promoterId,
-        kind: input.kind,
-        status: 'completed',
-        photo_count: input.photoCount,
-      })
+      .upsert(
+        {
+          visit_id: input.visitId,
+          client_id: input.clientId,
+          promoter_id: input.promoterId,
+          kind: input.kind,
+          status: 'completed',
+          photo_count: input.photoCount,
+        },
+        { onConflict: 'visit_id,kind' },
+      )
       .select('id, kind, status, photo_count')
       .single();
 

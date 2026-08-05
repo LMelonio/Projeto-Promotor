@@ -9,7 +9,7 @@ Este repositório é o código-fonte real do app, não mais um protótipo. As de
 | Camada | Escolha | Por quê |
 |---|---|---|
 | Runtime | Expo (React Native + TypeScript) | Único codebase para iOS/Android, câmera/GPS/notificações via módulos oficiais Expo, build gerenciado via EAS |
-| Backend | Supabase (Postgres + PostGIS + Storage + Auth + RLS) | Planejado; nenhum projeto real conectado ainda — o app roda em modo mock por padrão (ver `docs/DECISIONS.md`, item 17) |
+| Backend | Supabase (Postgres + PostGIS + Storage + Auth + RLS) | Schema/migrations já escritos em `supabase/migrations/` (ver `docs/DECISIONS.md`, item 31), mas nenhum projeto real conectado ainda — o app roda em modo mock por padrão (ver `docs/DECISIONS.md`, item 17) |
 | Estado remoto | TanStack Query | Cache, retry automático e invalidação — essencial com a rede instável de campo |
 | Estado local | Zustand | Sessão de auth; leve, sem boilerplate de Redux |
 | Estilo | NativeWind (Tailwind) | Tokens do Design System aplicados via `tailwind.config.js` |
@@ -39,6 +39,7 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - **Banner de offline** persistente na Home ("Sem conexão · trabalhando offline") e link **"Recuperar senha"** no Login (ver `docs/DECISIONS.md` item 27)
 - **Fila de sincronização offline** (SQLite + `services/sync`): check-in/check-out/Atividade/Questionário/Ruptura nunca se perdem por falta de sinal — ficam na fila e reenviam sozinhos quando a conexão volta (ou manualmente, pelo Perfil)
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint
+- **Schema real do banco** (`supabase/migrations/`, 10 arquivos + `seed.sql`): todas as tabelas, constraints, índices e RLS por promotor, prontos para aplicar num projeto Supabase — ver `docs/DECISIONS.md` item 31
 
 ⏭️ Não implementado ainda (todas as 4 fases planejadas foram concluídas — ver limitações conhecidas abaixo e `docs/DECISIONS.md`):
 - Upload real dos binários das fotos de Atividade para o Supabase Storage (hoje só a contagem é sincronizada — ver `docs/DECISIONS.md`, itens 13 e 14)
@@ -69,14 +70,20 @@ npm run gen:types    # regenera src/types/supabase.types.ts a partir do Supabase
 
 ## ⚠️ Antes de ir para produção
 
-`src/types/supabase.types.ts` é um **placeholder manual** (documentado no topo do próprio arquivo). Assim que o projeto Supabase (com as migrations de `lynkz_supabase/migrations/`) estiver acessível, rode:
+`src/types/supabase.types.ts` é um **placeholder manual** (documentado no topo do próprio arquivo), mas já escrito para bater exatamente com as migrations reais em `supabase/migrations/`. Para conectar um projeto Supabase de verdade:
 
 ```bash
+npx supabase login                 # autentica a CLI com sua conta Supabase
+npx supabase link --project-ref xxxx   # vincula a este projeto cloud
+npx supabase db push --include-seed   # aplica as migrations e popula com os dados de supabase/seed.sql
+
 export SUPABASE_PROJECT_ID=xxxx
-npm run gen:types
+npm run gen:types                  # regenera src/types/supabase.types.ts a partir do schema real
 ```
 
-e reconcilie os nomes de campo em `src/repositories/implementations/*.ts` com o tipo gerado — os nomes atuais foram inferidos a partir da documentação funcional e podem não bater 100% com as colunas reais das migrations.
+Depois disso, crie o usuário de autenticação do promotor de exemplo (Dashboard do Supabase → Authentication → Add user, e-mail `joao.avert@lynkzdistribuidora.com.br`) e vincule com `update lynkz.promoters set auth_user_id = '<uuid gerado>' where email = '...'` — ver comentário no topo de `supabase/seed.sql`. Por fim, copie `.env.example` para `.env` e preencha as credenciais do projeto.
+
+**Importante**: estas migrations foram revisadas manualmente linha a linha contra os Repositories reais, mas nunca foram executadas contra um Postgres de verdade neste ambiente (sem Docker disponível para `supabase start`/`db lint` local) — valide com `db push` num projeto de desenvolvimento antes de aplicar em produção.
 
 ## Estrutura de pastas
 
