@@ -18,6 +18,7 @@ export type AuthStackParamList = {
 export type ClientesStackParamList = {
   ClientesList: undefined;
   ClienteDetalhe: { clientId: string };
+  Checkin: { clientId: string; visitId: string };
 };
 
 /**

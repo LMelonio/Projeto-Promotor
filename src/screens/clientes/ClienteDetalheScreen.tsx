@@ -5,10 +5,9 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import { useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 
-import { useCheckIn, useClient, useTodayVisit } from './useClientesData';
+import { useClient, useTodayVisit } from './useClientesData';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
@@ -17,9 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { VisitStatus } from '@/models/Client';
 import type { ClientesStackParamList, MainTabParamList } from '@/navigation/types';
-import { useLocation } from '@/shared/hooks/useLocation';
 import { formatCurrencyBRL, formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
-import { distanceKm, formatDistance } from '@/shared/utils/geo';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 
@@ -38,10 +35,10 @@ const STATUS_TONE: Record<VisitStatus, 'success' | 'warning' | 'danger' | 'neutr
 };
 
 /**
- * Detalhe do Cliente + início do Check-in georreferenciado (Fase 2).
- * O check-in captura uma leitura nova de GPS no momento do toque — nunca
- * localização em cache, ver `useLocation` — e grava a coordenada junto do
- * horário. O check-out completo entra na Fase 4.
+ * Detalhe do Cliente (Fase 2). O check-in em si acontece em `CheckinScreen`
+ * — tela dedicada com relógio ao vivo e indicador de proximidade (wireframe
+ * "Check-in", ver `docs/DECISIONS.md`, item 24) — esta tela só inicia a
+ * navegação para lá.
  */
 export function ClienteDetalheScreen() {
   const navigation = useNavigation<NavigationProp<ClientesStackParamList>>();
@@ -51,10 +48,6 @@ export function ClienteDetalheScreen() {
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const client = useClient(clientId);
   const todayVisit = useTodayVisit(promoterId, clientId);
-  const checkIn = useCheckIn(promoterId, clientId);
-  const { requestLocation, errorMessage: locationError } = useLocation();
-
-  const [checkInDistanceKm, setCheckInDistanceKm] = useState<number | null>(null);
 
   function handleOpenMaps() {
     if (!client.data) return;
@@ -66,19 +59,9 @@ export function ClienteDetalheScreen() {
     navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Historico');
   }
 
-  async function handleCheckIn() {
+  function handleGoToCheckin() {
     if (!todayVisit.data) return;
-
-    const coords = await requestLocation();
-    if (!coords) return;
-
-    await checkIn.mutateAsync({ visitId: todayVisit.data.visitId, coords });
-
-    if (client.data) {
-      setCheckInDistanceKm(
-        distanceKm(coords, { latitude: client.data.latitude, longitude: client.data.longitude }),
-      );
-    }
+    navigation.navigate('Checkin', { clientId, visitId: todayVisit.data.visitId });
   }
 
   if (client.isLoading) {
@@ -222,8 +205,7 @@ export function ClienteDetalheScreen() {
               <Button
                 label="Iniciar check-in"
                 icon={<Feather name="map-pin" size={16} color="#FFFFFF" />}
-                loading={checkIn.isPending}
-                onPress={handleCheckIn}
+                onPress={handleGoToCheckin}
               />
             ) : null}
 
@@ -236,11 +218,6 @@ export function ClienteDetalheScreen() {
                     minute: '2-digit',
                   })}
                 </Text>
-                {checkInDistanceKm !== null ? (
-                  <Text className="text-ink-muted text-xs">
-                    Distância registrada até o cliente: {formatDistance(checkInDistanceKm)}
-                  </Text>
-                ) : null}
                 <Button
                   label="Ir para Visita"
                   variant="ghost"
@@ -266,12 +243,6 @@ export function ClienteDetalheScreen() {
                   {formatDurationMinutes(minutesBetween(visit.checkedInAt, visit.checkedOutAt))}
                 </Text>
               </View>
-            ) : null}
-
-            {visit.status === 'scheduled' && (checkIn.isError || locationError) ? (
-              <Text className="text-danger text-xs">
-                {locationError ?? 'Não foi possível registrar o check-in agora. Tente novamente.'}
-              </Text>
             ) : null}
           </>
         )}

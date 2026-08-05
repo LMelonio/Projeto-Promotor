@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import type { ClientesStackParamList } from './types';
+import { CheckinScreen } from '@/screens/clientes/CheckinScreen';
 import { ClienteDetalheScreen } from '@/screens/clientes/ClienteDetalheScreen';
 import { ClientesScreen } from '@/screens/clientes/ClientesScreen';
 
@@ -16,6 +17,7 @@ export function ClientesStackNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ClientesList" component={ClientesScreen} />
       <Stack.Screen name="ClienteDetalhe" component={ClienteDetalheScreen} />
+      <Stack.Screen name="Checkin" component={CheckinScreen} />
     </Stack.Navigator>
   );
 }

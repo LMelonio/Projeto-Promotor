@@ -28,7 +28,8 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - Tela de **Login** (biometria + e-mail/senha)
 - Tela de **Home/Dashboard** (saudação, próxima visita, KPIs, roteiro do dia)
 - Tela de **Clientes/Roteiro** (busca por nome/código ERP/CNPJ + filtros: Roteiro do dia, Adimplentes, Inadimplentes; contador "N na carteira")
-- Tela de **Detalhe do Cliente** (Informações, Endereço com "Ver no Google Maps", Financeiro com limite de crédito, link para Histórico — ver `docs/DECISIONS.md` item 23) + **Check-in georreferenciado** (captura de GPS ao vivo via `useLocation`, nunca posição em cache)
+- Tela de **Detalhe do Cliente** (Informações, Endereço com "Ver no Google Maps", Financeiro com limite de crédito, link para Histórico — ver `docs/DECISIONS.md` item 23)
+- Tela de **Check-in** dedicada (relógio ao vivo + indicador de proximidade em tempo real via `useLiveLocation` — ver `docs/DECISIONS.md` item 24)
 - **Visita em andamento**: checklist de **Atividades** (Questionário de PDV, Fotos da gôndola, Verificação de preços, Registro de ruptura — reescrito a partir da Documentação Funcional real, ver `docs/DECISIONS.md` item 21), **Questionário de PDV** como assistente de 8 perguntas de múltipla escolha, **Fotos** com galeria de miniaturas reais, **Ruptura** com leitura de EAN + gravidade + foto obrigatória
 - Tela de **Check-out** dedicada (resumo da visita + motivo + resultado, georreferenciado — ver `docs/DECISIONS.md` item 22)
 - Tela de **Histórico** de visitas finalizadas (cliente, horário, duração, atividades/fotos)
