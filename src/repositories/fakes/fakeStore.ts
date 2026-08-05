@@ -31,8 +31,16 @@ interface FakeVisit {
 interface FakeClient {
   id: string;
   erpCode: string;
+  cnpj: string;
   legalName: string;
   tradeName: string;
+  email: string;
+  phone: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  creditLimit: number;
   rating: number | null;
   latitude: number;
   longitude: number;
@@ -65,8 +73,16 @@ export const fakeClients: FakeClient[] = [
   {
     id: 'C001',
     erpCode: 'ERP20001',
+    cnpj: '12.345.678/0001-90',
     legalName: 'PET AMIGO COMERCIO DE PRODUTOS VETERINARIOS LTDA',
     tradeName: 'Pet Amigo',
+    email: 'contato@petamigo.com.br',
+    phone: '(99) 3524-1180',
+    address: 'Av. Getúlio Vargas, 1204',
+    neighborhood: 'Centro',
+    city: 'Imperatriz',
+    state: 'MA',
+    creditLimit: 15000,
     rating: 4,
     latitude: -4.95395,
     longitude: -47.518666,
@@ -75,8 +91,16 @@ export const fakeClients: FakeClient[] = [
   {
     id: 'C002',
     erpCode: 'ERP20002',
+    cnpj: '23.456.789/0001-01',
     legalName: 'CASA DO PET EIRELI',
     tradeName: 'Casa do Pet',
+    email: 'financeiro@casadopet.com.br',
+    phone: '(99) 3532-4477',
+    address: 'Rua das Acácias, 88',
+    neighborhood: 'Nova Conquista',
+    city: 'Açailândia',
+    state: 'MA',
+    creditLimit: 8000,
     rating: 3,
     latitude: -5.350312,
     longitude: -47.474662,
@@ -85,8 +109,16 @@ export const fakeClients: FakeClient[] = [
   {
     id: 'C003',
     erpCode: 'ERP20003',
+    cnpj: '34.567.890/0001-12',
     legalName: 'VET CENTER LTDA ME',
     tradeName: 'Vet Center',
+    email: 'compras@vetcenter.com.br',
+    phone: '(63) 3411-7722',
+    address: 'Av. Bernardo Sayão, 350',
+    neighborhood: 'Setor Central',
+    city: 'Araguaína',
+    state: 'TO',
+    creditLimit: 22000,
     rating: 5,
     latitude: -6.553675,
     longitude: -47.40998,
@@ -95,8 +127,16 @@ export const fakeClients: FakeClient[] = [
   {
     id: 'C004',
     erpCode: 'ERP20004',
+    cnpj: '45.678.901/0001-23',
     legalName: 'MUNDO ANIMAL LTDA',
     tradeName: 'Mundo Animal',
+    email: 'mundoanimal@gmail.com',
+    phone: '(99) 3551-2290',
+    address: 'Rua dos Ipês, 512',
+    neighborhood: 'Bom Jesus',
+    city: 'Grajaú',
+    state: 'MA',
+    creditLimit: 5000,
     rating: null,
     latitude: -7.5467300000000002,
     longitude: -46.050988,
@@ -105,8 +145,16 @@ export const fakeClients: FakeClient[] = [
   {
     id: 'C005',
     erpCode: 'ERP20005',
+    cnpj: '56.789.012/0001-34',
     legalName: 'PET VIDA COMERCIO DE PRODUTOS VETERINARIOS LTDA',
     tradeName: 'Pet Vida',
+    email: 'atendimento@petvida.com.br',
+    phone: '(94) 3324-5567',
+    address: 'Av. Antônio Maia, 977',
+    neighborhood: 'Nova Marabá',
+    city: 'Marabá',
+    state: 'PA',
+    creditLimit: 12000,
     rating: 4,
     latitude: -5.81464,
     longitude: -46.142943,

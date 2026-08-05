@@ -6,7 +6,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 
 import { useCheckIn, useClient, useTodayVisit } from './useClientesData';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -18,7 +18,7 @@ import { Card } from '@/components/ui/Card';
 import type { VisitStatus } from '@/models/Client';
 import type { ClientesStackParamList, MainTabParamList } from '@/navigation/types';
 import { useLocation } from '@/shared/hooks/useLocation';
-import { formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
+import { formatCurrencyBRL, formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
 import { distanceKm, formatDistance } from '@/shared/utils/geo';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
@@ -55,6 +55,16 @@ export function ClienteDetalheScreen() {
   const { requestLocation, errorMessage: locationError } = useLocation();
 
   const [checkInDistanceKm, setCheckInDistanceKm] = useState<number | null>(null);
+
+  function handleOpenMaps() {
+    if (!client.data) return;
+    const { latitude, longitude } = client.data;
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`);
+  }
+
+  function handleOpenHistorico() {
+    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Historico');
+  }
 
   async function handleCheckIn() {
     if (!todayVisit.data) return;
@@ -111,7 +121,9 @@ export function ClienteDetalheScreen() {
         <View className="flex-row items-start justify-between gap-2">
           <View className="flex-1 gap-0.5">
             <Text className="text-ink-muted text-xs">{data.legalName}</Text>
-            <Text className="text-ink-muted text-xs">Cód. ERP {data.erpCode}</Text>
+            <Text className="text-ink-muted text-xs">
+              Cód. ERP {data.erpCode} · CNPJ {data.cnpj}
+            </Text>
           </View>
           <Badge
             label={data.financialStatus === 'compliant' ? 'Adimplente' : 'Inadimplente'}
@@ -132,6 +144,59 @@ export function ClienteDetalheScreen() {
           </View>
         ) : null}
       </Card>
+
+      <Text className="text-ink-muted text-xs font-bold mb-2 uppercase">Informações</Text>
+      <Card className="gap-2 mb-4">
+        <View className="flex-row items-center gap-2">
+          <Feather name="mail" size={14} color={colors.inkMuted} />
+          <Text className="text-ink text-sm flex-1" numberOfLines={1}>
+            {data.email}
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-2">
+          <Feather name="phone" size={14} color={colors.inkMuted} />
+          <Text className="text-ink text-sm">{data.phone}</Text>
+        </View>
+      </Card>
+
+      <Text className="text-ink-muted text-xs font-bold mb-2 uppercase">Endereço</Text>
+      <Card className="gap-2 mb-4">
+        <Text className="text-ink text-sm">
+          {data.address} · {data.neighborhood}
+        </Text>
+        <Text className="text-ink-muted text-xs">
+          {data.city} · {data.state}
+        </Text>
+        <Pressable onPress={handleOpenMaps} className="flex-row items-center gap-2 mt-1">
+          <Feather name="map-pin" size={14} color={colors.brand} />
+          <Text className="text-brand text-sm font-semibold">Ver no Google Maps</Text>
+        </Pressable>
+      </Card>
+
+      <Text className="text-ink-muted text-xs font-bold mb-2 uppercase">Financeiro</Text>
+      <Card className="gap-2 mb-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-ink-muted text-sm">Situação</Text>
+          <Badge
+            label={data.financialStatus === 'compliant' ? 'Adimplente' : 'Inadimplente'}
+            tone={data.financialStatus === 'compliant' ? 'success' : 'danger'}
+          />
+        </View>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-ink-muted text-sm">Limite de crédito</Text>
+          <Text className="text-ink text-sm font-semibold">
+            {formatCurrencyBRL(data.creditLimit)}
+          </Text>
+        </View>
+      </Card>
+
+      <Pressable
+        onPress={handleOpenHistorico}
+        className="flex-row items-center justify-between py-1 mb-4"
+      >
+        <Text className="text-ink text-sm font-semibold">Histórico de ações</Text>
+        <Feather name="chevron-right" size={18} color={colors.inkMuted} />
+      </Pressable>
 
       <Text className="text-ink font-bold text-base mb-2">Visita de hoje</Text>
 

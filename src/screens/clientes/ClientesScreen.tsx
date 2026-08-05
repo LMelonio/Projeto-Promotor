@@ -58,7 +58,8 @@ export function ClientesScreen() {
           term.length === 0 ||
           client.tradeName.toLowerCase().includes(term) ||
           client.legalName.toLowerCase().includes(term) ||
-          client.erpCode.toLowerCase().includes(term),
+          client.erpCode.toLowerCase().includes(term) ||
+          client.cnpj.includes(term),
       );
   }, [portfolio.data, filter, search]);
 
@@ -83,13 +84,16 @@ export function ClientesScreen() {
 
   return (
     <ScreenContainer>
-      <Text className="text-ink font-extrabold text-xl mt-4 mb-4">Clientes</Text>
+      <View className="flex-row items-baseline justify-between mt-4 mb-4">
+        <Text className="text-ink font-extrabold text-xl">Clientes</Text>
+        <Text className="text-ink-muted text-xs">{(portfolio.data ?? []).length} na carteira</Text>
+      </View>
 
       <View className="flex-row items-center gap-2 h-12 px-4 rounded-input border border-line bg-surface-card mb-3">
         <Feather name="search" size={18} color={colors.inkMuted} />
         <TextInput
           className="flex-1 text-[15px] text-ink"
-          placeholder="Buscar por nome ou código"
+          placeholder="Buscar por nome, código ou CNPJ"
           placeholderTextColor={colors.inkMuted}
           value={search}
           onChangeText={setSearch}

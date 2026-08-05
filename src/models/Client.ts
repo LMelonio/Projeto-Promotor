@@ -5,11 +5,23 @@
 export type FinancialStatus = 'compliant' | 'delinquent';
 export type VisitStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
+/**
+ * Campos adicionados a partir do wireframe "4-Detalhes do Cliente"
+ * (Documentação Funcional real) — ver `docs/DECISIONS.md`, item 23.
+ */
 export interface Client {
   id: string;
   erpCode: string;
+  cnpj: string;
   legalName: string;
   tradeName: string;
+  email: string;
+  phone: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  creditLimit: number;
   rating: number | null;
   latitude: number;
   longitude: number;

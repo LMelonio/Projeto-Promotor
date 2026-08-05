@@ -34,7 +34,9 @@ class ClientRepository implements IClientRepository {
     const { data: clients, error: clientsError } = await supabase
       .schema('lynkz')
       .from('clients')
-      .select('id, erp_code, legal_name, trade_name, rating, latitude, longitude, financial_status')
+      .select(
+        'id, erp_code, cnpj, legal_name, trade_name, email, phone, address, neighborhood, city, state, credit_limit, rating, latitude, longitude, financial_status',
+      )
       .in('id', clientIds)
       .is('deleted_at', null);
 
@@ -66,8 +68,16 @@ class ClientRepository implements IClientRepository {
     return clients.map((c) => ({
       id: c.id,
       erpCode: c.erp_code,
+      cnpj: c.cnpj,
       legalName: c.legal_name,
       tradeName: c.trade_name,
+      email: c.email,
+      phone: c.phone,
+      address: c.address,
+      neighborhood: c.neighborhood,
+      city: c.city,
+      state: c.state,
+      creditLimit: c.credit_limit,
       rating: c.rating,
       latitude: c.latitude,
       longitude: c.longitude,
@@ -81,7 +91,9 @@ class ClientRepository implements IClientRepository {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('clients')
-      .select('id, erp_code, legal_name, trade_name, rating, latitude, longitude, financial_status')
+      .select(
+        'id, erp_code, cnpj, legal_name, trade_name, email, phone, address, neighborhood, city, state, credit_limit, rating, latitude, longitude, financial_status',
+      )
       .eq('id', clientId)
       .is('deleted_at', null)
       .single();
@@ -93,8 +105,16 @@ class ClientRepository implements IClientRepository {
     return {
       id: data.id,
       erpCode: data.erp_code,
+      cnpj: data.cnpj,
       legalName: data.legal_name,
       tradeName: data.trade_name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      neighborhood: data.neighborhood,
+      city: data.city,
+      state: data.state,
+      creditLimit: data.credit_limit,
       rating: data.rating,
       latitude: data.latitude,
       longitude: data.longitude,

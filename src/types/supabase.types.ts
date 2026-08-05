@@ -38,8 +38,17 @@ export interface Database {
         Row: {
           id: string;
           erp_code: string;
+          /** Ver `docs/DECISIONS.md`, item 23 — campos do wireframe "4-Detalhes do Cliente". */
+          cnpj: string;
           legal_name: string;
           trade_name: string;
+          email: string;
+          phone: string;
+          address: string;
+          neighborhood: string;
+          city: string;
+          state: string;
+          credit_limit: number;
           rating: number | null;
           latitude: number;
           longitude: number;

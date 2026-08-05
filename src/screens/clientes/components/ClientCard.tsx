@@ -23,7 +23,7 @@ export function ClientCard({ client, onPress }: ClientCardProps) {
               {client.tradeName}
             </Text>
             <Text className="text-ink-muted text-xs" numberOfLines={1}>
-              {client.erpCode}
+              Cód. {client.erpCode} · {client.neighborhood}
             </Text>
           </View>
           <Badge
