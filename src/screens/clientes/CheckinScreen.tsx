@@ -5,6 +5,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -14,7 +15,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import type { ClientesStackParamList } from '@/navigation/types';
+import type { ClientesStackParamList, MainTabParamList } from '@/navigation/types';
 import { useLiveLocation } from '@/shared/hooks/useLiveLocation';
 import { distanceKm, formatDistance } from '@/shared/utils/geo';
 import { useAuthStore } from '@/stores/authStore';
@@ -54,7 +55,7 @@ function formatClock(date: Date): string {
  * `docs/DECISIONS.md`, item 24).
  */
 export function CheckinScreen() {
-  const navigation = useNavigation<NavigationProp<ClientesStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<ClientesStackParamList>>();
   const { params } = useRoute<RouteProp<ClientesStackParamList, 'Checkin'>>();
   const { clientId, visitId } = params;
 
@@ -88,10 +89,18 @@ export function CheckinScreen() {
     ? distanceKm(coords, { latitude: data.latitude, longitude: data.longitude })
     : null;
 
+  /**
+   * Vai direto para o checklist de Atividades da visita (aba "Visita") em
+   * vez de voltar ao Detalhe do Cliente — é o próximo passo natural do
+   * fluxo, e evitar o "Ir para Visita" extra também evita deixar o stack de
+   * Clientes parado no cliente/tela de check-in (repro real: a aba
+   * "Clientes" ficava travada nesse cliente até o fim da visita).
+   */
   async function handleConfirm() {
     if (!coords) return;
     await checkIn.mutateAsync({ visitId, coords });
-    navigation.goBack();
+    navigation.popToTop();
+    navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Visita');
   }
 
   return (
