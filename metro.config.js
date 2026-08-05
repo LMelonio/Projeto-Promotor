@@ -16,4 +16,15 @@ const config = getDefaultConfig(__dirname);
 // tradicional (CJS) em todas as plataformas — ver docs/DECISIONS.md, item 19.
 config.resolver.unstable_enablePackageExports = false;
 
+// `expo-sqlite`'s implementação web (`expo-sqlite/web/worker.ts`) importa um
+// binário `.wasm` (`wa-sqlite.wasm`) no topo do arquivo. Mesmo com o guard de
+// `Platform.OS === 'web'` em `database/local/db.ts` (SQLite nunca é
+// realmente usado no web — ver docs/DECISIONS.md, item 18), o Metro deste
+// projeto não faz code-splitting de verdade em `import()` dinâmico: ele
+// ainda percorre e resolve o grafo inteiro alcançável a partir dele. Sem
+// ".wasm" na lista de extensões de asset, o Metro tenta interpretar o
+// arquivo como código-fonte e falha ao bundlar para web inteiro (não só a
+// funcionalidade de sync) — ver docs/DECISIONS.md, item 27.
+config.resolver.assetExts.push('wasm');
+
 module.exports = withNativeWind(config, { input: './global.css' });

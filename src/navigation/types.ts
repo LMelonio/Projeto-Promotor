@@ -12,6 +12,15 @@ export type AuthStackParamList = {
 };
 
 /**
+ * Stack aninhada dentro da aba "Início": Home → Notificações (ver
+ * `docs/DECISIONS.md`, item 27).
+ */
+export type HomeStackParamList = {
+  Home: undefined;
+  Notificacoes: undefined;
+};
+
+/**
  * Stack aninhada dentro da aba "Clientes" (Fase 2), conforme recomendado em
  * `docs/ARCHITECTURE.md` para telas de fluxo profundo dentro de uma tab.
  */
@@ -48,7 +57,7 @@ export type PerfilStackParamList = {
 };
 
 export type MainTabParamList = {
-  Inicio: undefined;
+  Inicio: NavigatorScreenParams<HomeStackParamList> | undefined;
   Clientes: NavigatorScreenParams<ClientesStackParamList> | undefined;
   Visita: NavigatorScreenParams<VisitaStackParamList> | undefined;
   Historico: undefined;

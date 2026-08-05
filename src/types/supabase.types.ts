@@ -178,6 +178,25 @@ export interface Database {
           status: 'pending' | 'resolved';
         };
       };
+      /**
+       * Assumida a partir dos itens de exemplo do wireframe de Notificações
+       * ("Endereço aprovado"/"Endereço recusado") — ver `docs/DECISIONS.md`,
+       * item 27. Reconciliar contra o schema real quando disponível.
+       */
+      notifications: {
+        Row: {
+          id: string;
+          promoter_id: string;
+          kind: 'address_approved' | 'address_rejected' | 'visit_reminder' | 'generic';
+          title: string;
+          body: string;
+          created_at: string;
+          read_at: string | null;
+        };
+        Update: {
+          read_at?: string | null;
+        };
+      };
     };
     Views: {
       /**

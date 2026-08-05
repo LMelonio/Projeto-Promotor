@@ -27,6 +27,10 @@ class FakeAuthRepository implements IAuthRepository {
   async updatePassword(_currentPassword: string, _newPassword: string): Promise<void> {
     // Sem conta real para atualizar em modo mock — resolve como sucesso.
   }
+
+  async resetPasswordForEmail(_email: string): Promise<void> {
+    // Sem e-mail real para enviar em modo mock — resolve como sucesso.
+  }
 }
 
 export const fakeAuthRepository = new FakeAuthRepository();

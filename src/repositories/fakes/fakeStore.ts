@@ -1,5 +1,6 @@
 import type { Activity, ActivityKind } from '@/models/Activity';
 import type { FinancialStatus, VisitStatus } from '@/models/Client';
+import type { AppNotification } from '@/models/Notification';
 import type { Product } from '@/models/Product';
 import type { Promoter } from '@/models/Promoter';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
@@ -245,6 +246,47 @@ export const fakeProducts: Product[] = [
   },
 ];
 
+/**
+ * Notificações fictícias (modo mock) — "Endereço aprovado"/"Endereço
+ * recusado" descobertos nos itens de exemplo do wireframe, ver
+ * `docs/DECISIONS.md`, item 27. App de demonstração de um único promotor,
+ * então `FakeNotificationRepository.list` ignora `promoterId`.
+ */
+export const fakeNotifications: AppNotification[] = [
+  {
+    id: 'N001',
+    kind: 'visit_reminder',
+    title: 'Lembrete de visita',
+    body: 'Você tem uma visita agendada para Casa do Pet às 10:30 hoje.',
+    createdAt: timeToday(7, 0, 0),
+    read: false,
+  },
+  {
+    id: 'N002',
+    kind: 'address_approved',
+    title: 'Endereço aprovado',
+    body: 'A atualização de endereço de Pet Amigo foi aprovada pelo back-office.',
+    createdAt: timeToday(8, 15, 0),
+    read: false,
+  },
+  {
+    id: 'N003',
+    kind: 'address_rejected',
+    title: 'Endereço recusado',
+    body: 'A atualização de endereço de Vet Center foi recusada. Verifique os dados e tente novamente.',
+    createdAt: timeToday(9, 0, -1),
+    read: true,
+  },
+  {
+    id: 'N004',
+    kind: 'generic',
+    title: 'Atualização do app',
+    body: 'Nova versão do Lynkz Promotor disponível com melhorias de desempenho.',
+    createdAt: timeToday(10, 0, -3),
+    read: true,
+  },
+];
+
 interface FakeActivity extends Activity {
   visitId: string;
 }
@@ -345,5 +387,10 @@ export const fakeStore = {
 
   rupturasForClient(clientId: string): Ruptura[] {
     return fakeRupturas.filter((r) => r.clientId === clientId);
+  },
+
+  markNotificationRead(notificationId: string): void {
+    const notification = fakeNotifications.find((n) => n.id === notificationId);
+    if (notification) notification.read = true;
   },
 };

@@ -3,11 +3,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { ClientesStackNavigator } from './ClientesStackNavigator';
 import { ElevatedTabButton } from './ElevatedTabButton';
+import { HomeStackNavigator } from './HomeStackNavigator';
 import { PerfilStackNavigator } from './PerfilStackNavigator';
 import { VisitaStackNavigator } from './VisitaStackNavigator';
 import type { MainTabParamList } from './types';
 import { HistoricoScreen } from '@/screens/historico/HistoricoScreen';
-import { HomeScreen } from '@/screens/home/HomeScreen';
 import { colors } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -32,7 +32,7 @@ export function MainTabNavigator() {
     >
       <Tab.Screen
         name="Inicio"
-        component={HomeScreen}
+        component={HomeStackNavigator}
         options={{
           title: 'Início',
           tabBarIcon: ({ color, size }) => <Feather name="home" color={color} size={size} />,

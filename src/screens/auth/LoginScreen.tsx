@@ -7,13 +7,14 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Button } from '@/components/ui/Button';
+import { authRepository } from '@/repositories/implementations/AuthRepository';
 import { lastKnownUser } from '@/services/api/lastKnownUser';
 import { useBiometricAuth } from '@/shared/hooks/useBiometricAuth';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 import { loginSchema, type LoginFormValues } from '@/validators/loginSchema';
 
-type ScreenMode = 'checking' | 'biometric' | 'password';
+type ScreenMode = 'checking' | 'biometric' | 'password' | 'recover';
 
 /**
  * Tela de Login (wireframe "1 - Login").
@@ -42,6 +43,9 @@ export function LoginScreen() {
   const authError = useAuthStore((s) => s.errorMessage);
 
   const [biometricError, setBiometricError] = useState<string | null>(null);
+
+  const [recoverEmail, setRecoverEmail] = useState('');
+  const [recoverStatus, setRecoverStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   const {
     control,
@@ -86,6 +90,16 @@ export function LoginScreen() {
     } catch {
       // Erro já fica disponível em authError (store) e é exibido abaixo —
       // nada adicional a fazer aqui.
+    }
+  }
+
+  async function handleRecoverSubmit() {
+    if (recoverEmail.trim().length === 0) return;
+    setRecoverStatus('sending');
+    try {
+      await authRepository.resetPasswordForEmail(recoverEmail.trim());
+    } finally {
+      setRecoverStatus('sent');
     }
   }
 
@@ -190,11 +204,66 @@ export function LoginScreen() {
             loading={isSubmitting}
           />
 
+          <Pressable
+            onPress={() => {
+              setRecoverStatus('idle');
+              setMode('recover');
+            }}
+            className="items-center py-1"
+          >
+            <Text className="text-ink-muted text-sm">Esqueceu a senha?</Text>
+          </Pressable>
+
           {cachedName ? (
             <Pressable onPress={() => setMode('biometric')} className="items-center py-2">
               <Text className="text-ink-muted text-sm">Voltar para biometria</Text>
             </Pressable>
           ) : null}
+        </View>
+      )}
+
+      {mode === 'recover' && (
+        <View className="gap-4">
+          <View className="items-center gap-1 mb-2">
+            <Text className="text-ink font-extrabold text-xl text-center">Recuperar senha</Text>
+            <Text className="text-ink-muted text-sm text-center">
+              Informe seu e-mail cadastrado para receber um link de recuperação.
+            </Text>
+          </View>
+
+          {recoverStatus === 'sent' ? (
+            <Text className="text-ink text-sm text-center">
+              Se esse e-mail estiver cadastrado, enviamos um link de recuperação para ele. Verifique
+              sua caixa de entrada.
+            </Text>
+          ) : (
+            <>
+              <View>
+                <Text className="text-ink-muted text-xs mb-1.5 ml-1">E-mail</Text>
+                <TextInput
+                  className="h-14 px-4 rounded-input border border-line bg-surface-card text-[15px] text-ink"
+                  placeholder="seuemail@lynkz.com.br"
+                  placeholderTextColor={colors.inkMuted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  value={recoverEmail}
+                  onChangeText={setRecoverEmail}
+                />
+              </View>
+
+              <Button
+                label="Enviar link de recuperação"
+                disabled={recoverEmail.trim().length === 0}
+                loading={recoverStatus === 'sending'}
+                onPress={handleRecoverSubmit}
+              />
+            </>
+          )}
+
+          <Pressable onPress={() => setMode('password')} className="items-center py-2">
+            <Text className="text-ink-muted text-sm">Voltar para o login</Text>
+          </Pressable>
         </View>
       )}
 

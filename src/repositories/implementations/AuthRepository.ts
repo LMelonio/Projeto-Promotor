@@ -76,6 +76,15 @@ class AuthRepository implements IAuthRepository {
     }
   }
 
+  /**
+   * Não trata erro do Supabase de forma diferente por e-mail
+   * inválido/inexistente — sempre resolve normalmente, para não revelar a um
+   * atacante se um e-mail está cadastrado (enumeração de contas).
+   */
+  async resetPasswordForEmail(email: string): Promise<void> {
+    await supabase.auth.resetPasswordForEmail(email);
+  }
+
   private async fetchPromoterProfile(authUserId: string): Promise<Promoter> {
     const { data, error } = await supabase
       .schema('lynkz')

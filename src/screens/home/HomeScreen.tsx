@@ -7,9 +7,12 @@ import { RouteItemRow } from './components/RouteItemRow';
 import { useDashboardSummary, useNextVisit, useTodayRoute } from './useHomeData';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
+import { OfflineBanner } from '@/components/feedback/OfflineBanner';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { KpiCard } from '@/components/ui/KpiCard';
-import type { MainTabParamList } from '@/navigation/types';
+import type { HomeStackParamList, MainTabParamList } from '@/navigation/types';
+import { useNotifications } from '@/screens/notificacoes/useNotificacoesData';
+import { useNetworkStatus } from '@/shared/hooks/useNetworkStatus';
 import { formatCurrencyBRL, formatPercentage } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
@@ -23,14 +26,17 @@ import { colors } from '@/theme';
  *   → Roteiro de hoje → Bottom Navigation.
  */
 export function HomeScreen() {
-  const navigation = useNavigation<NavigationProp<MainTabParamList>>();
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const promoter = useAuthStore((s) => s.promoter);
   const promoterId = promoter?.id;
 
   const summary = useDashboardSummary(promoterId);
   const nextVisit = useNextVisit(promoterId);
   const route = useTodayRoute(promoterId);
+  const notifications = useNotifications(promoterId);
+  const { isOffline } = useNetworkStatus();
 
+  const hasUnreadNotifications = (notifications.data ?? []).some((n) => !n.read);
   const firstName = promoter?.fullName.split(' ')[0] ?? '';
   const isLoadingCritical = summary.isLoading;
 
@@ -57,6 +63,8 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer scroll>
+      {isOffline ? <OfflineBanner /> : null}
+
       <View className="flex-row items-center justify-between mt-4 mb-5">
         <View>
           <Text className="text-ink-muted text-sm">Bom dia,</Text>
@@ -73,7 +81,18 @@ export function HomeScreen() {
               route.refetch();
             }}
           />
-          <Feather name="bell" size={20} color={colors.inkMuted} />
+          <View>
+            <Feather
+              name="bell"
+              size={20}
+              color={colors.inkMuted}
+              onPress={() => navigation.navigate('Notificacoes')}
+              accessibilityLabel="Notificações"
+            />
+            {hasUnreadNotifications ? (
+              <View className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-brand" />
+            ) : null}
+          </View>
         </View>
       </View>
 
@@ -82,7 +101,7 @@ export function HomeScreen() {
           <NextVisitCard
             visit={nextVisit.data}
             onStartCheckIn={(visit) =>
-              navigation.navigate('Clientes', {
+              navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Clientes', {
                 screen: 'ClienteDetalhe',
                 params: { clientId: visit.clientId },
               })
@@ -113,7 +132,9 @@ export function HomeScreen() {
         <Text className="text-ink font-bold text-base">Roteiro de hoje</Text>
         <Text
           className="text-brand text-sm font-semibold"
-          onPress={() => navigation.navigate('Clientes')}
+          onPress={() =>
+            navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Clientes')
+          }
         >
           Ver tudo
         </Text>

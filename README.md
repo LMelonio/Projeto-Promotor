@@ -34,6 +34,8 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - Tela de **Check-out** dedicada (resumo da visita + motivo + resultado, georreferenciado — ver `docs/DECISIONS.md` item 22)
 - Tela de **Histórico** de visitas finalizadas (filtros de período Hoje/7 dias/30 dias, busca por cliente, resultado da visita, status de sincronização e contagem de rupturas por visita — ver `docs/DECISIONS.md` item 25)
 - Tela de **Perfil completo** (cargo/cidade, status da fila de sincronização, Alterar senha, Notificações, Aparência, Ajuda e sobre, logout — ver `docs/DECISIONS.md` item 26)
+- Tela de **Notificações** (caixa de entrada agrupada por dia, lidas/não lidas, sino com indicador na Home — ver `docs/DECISIONS.md` item 27)
+- **Banner de offline** persistente na Home ("Sem conexão · trabalhando offline") e link **"Recuperar senha"** no Login (ver `docs/DECISIONS.md` item 27)
 - **Fila de sincronização offline** (SQLite + `services/sync`): check-in/check-out/Atividade/Questionário/Ruptura nunca se perdem por falta de sinal — ficam na fila e reenviam sozinhos quando a conexão volta (ou manualmente, pelo Perfil)
 - Suíte de testes unitários passando, zero erros de TypeScript, zero warnings de ESLint
 
@@ -41,6 +43,7 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - Upload real dos binários das fotos de Atividade para o Supabase Storage (hoje só a contagem é sincronizada — ver `docs/DECISIONS.md`, itens 13 e 14)
 - A lista "Rupturas deste cliente" só reflete um registro feito offline depois que a fila sincronizar de verdade (ver `docs/DECISIONS.md`, item 14)
 - Modo escuro: a tela de Aparência seleciona e salva a preferência, mas o app inteiro continua com as cores fixas em tema claro — ver `docs/DECISIONS.md`, item 26
+- Fluxo de solicitação/aprovação de atualização de endereço de cliente: só a notificação de resultado ("Endereço aprovado"/"recusado") existe; o fluxo que a origina (editar endereço, fila de aprovação do back-office) não foi implementado — ver `docs/DECISIONS.md`, item 27
 
 ## Como rodar
 
