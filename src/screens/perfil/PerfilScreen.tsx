@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card';
 import type { PerfilStackParamList } from '@/navigation/types';
 import { useSyncStatus } from '@/services/sync/useSyncStatus';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 function initials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/);
@@ -38,6 +38,7 @@ const MENU_ITEMS: {
  */
 export function PerfilScreen() {
   const navigation = useNavigation<NavigationProp<PerfilStackParamList>>();
+  const colors = useThemeColors();
   const promoter = useAuthStore((s) => s.promoter);
   const signOut = useAuthStore((s) => s.signOut);
   const { pendingCount, isSyncing, syncNow, refresh } = useSyncStatus();

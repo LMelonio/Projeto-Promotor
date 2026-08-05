@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { Pressable, View, type GestureResponderEvent } from 'react-native';
 
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Botão central elevado "Visita" da Bottom Navigation — decisão aprovada do
@@ -10,6 +10,7 @@ import { colors } from '@/theme';
  * `tabBarButton` customizado no `MainTabNavigator`.
  */
 export function ElevatedTabButton({ onPress }: { onPress?: (e: GestureResponderEvent) => void }) {
+  const colors = useThemeColors();
   return (
     <View className="items-center justify-center -top-5">
       <Pressable

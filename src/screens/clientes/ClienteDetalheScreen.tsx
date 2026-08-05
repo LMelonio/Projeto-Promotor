@@ -19,7 +19,7 @@ import type { VisitStatus } from '@/models/Client';
 import type { ClientesStackParamList, MainTabParamList } from '@/navigation/types';
 import { formatCurrencyBRL, formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const STATUS_LABEL: Record<VisitStatus, string> = {
   scheduled: 'Agendada',
@@ -46,6 +46,7 @@ export function ClienteDetalheScreen() {
   const { params } = useRoute<RouteProp<ClientesStackParamList, 'ClienteDetalhe'>>();
   const { clientId } = params;
 
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const client = useClient(clientId);
   const todayVisit = useTodayVisit(promoterId, clientId);

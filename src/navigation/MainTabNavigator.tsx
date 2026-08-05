@@ -8,7 +8,7 @@ import { PerfilStackNavigator } from './PerfilStackNavigator';
 import { VisitaStackNavigator } from './VisitaStackNavigator';
 import type { MainTabParamList } from './types';
 import { HistoricoScreen } from '@/screens/historico/HistoricoScreen';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -17,6 +17,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
  * Clientes, Visita (central, elevado), Histórico, Perfil.
  */
 export function MainTabNavigator() {
+  const colors = useThemeColors();
   return (
     <Tab.Navigator
       backBehavior="history"

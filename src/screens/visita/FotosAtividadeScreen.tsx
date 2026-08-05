@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { ACTIVITY_CHECKLIST } from '@/models/Activity';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const PHOTOS_ITEM = ACTIVITY_CHECKLIST.find((item) => item.kind === 'photos');
 const REQUIRED_COUNT = PHOTOS_ITEM?.requiredPhotoCount ?? 1;
@@ -30,6 +30,7 @@ const REQUIRED_COUNT = PHOTOS_ITEM?.requiredPhotoCount ?? 1;
  */
 export function FotosAtividadeScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const activeVisit = useActiveVisit(promoterId);
   const registerActivity = useRegisterActivity(activeVisit.data?.visitId);

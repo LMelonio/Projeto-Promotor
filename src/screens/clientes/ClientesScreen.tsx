@@ -11,7 +11,7 @@ import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import type { ClientListItem } from '@/models/Client';
 import type { ClientesStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 type FilterKey = 'todos' | 'roteiro' | 'adimplente' | 'inadimplente';
 
@@ -43,6 +43,7 @@ function matchesFilter(client: ClientListItem, filter: FilterKey): boolean {
  */
 export function ClientesScreen() {
   const navigation = useNavigation<NavigationProp<ClientesStackParamList>>();
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const portfolio = useClientPortfolio(promoterId);
 

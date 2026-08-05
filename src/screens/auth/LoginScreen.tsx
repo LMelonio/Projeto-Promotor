@@ -11,7 +11,7 @@ import { authRepository } from '@/repositories/implementations/AuthRepository';
 import { lastKnownUser } from '@/services/api/lastKnownUser';
 import { useBiometricAuth } from '@/shared/hooks/useBiometricAuth';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 import { loginSchema, type LoginFormValues } from '@/validators/loginSchema';
 
 type ScreenMode = 'checking' | 'biometric' | 'password' | 'recover';
@@ -36,6 +36,7 @@ export function LoginScreen() {
   const [mode, setMode] = useState<ScreenMode>('checking');
   const [cachedName, setCachedName] = useState<string | null>(null);
 
+  const colors = useThemeColors();
   const { isAvailable: biometricAvailable, authenticate } = useBiometricAuth();
   const signIn = useAuthStore((s) => s.signIn);
   const restoreSession = useAuthStore((s) => s.restoreSession);

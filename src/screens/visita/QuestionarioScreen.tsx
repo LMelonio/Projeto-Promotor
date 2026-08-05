@@ -17,7 +17,7 @@ import { SelectableList } from '@/components/ui/SelectableList';
 import { PDV_QUESTIONNAIRE, type QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Questionário de PDV (wireframe "7-Questionário", Documentação Funcional):
@@ -27,6 +27,7 @@ import { colors } from '@/theme';
  */
 export function QuestionarioScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const activeVisit = useActiveVisit(promoterId);
   const visitId = activeVisit.data?.visitId;

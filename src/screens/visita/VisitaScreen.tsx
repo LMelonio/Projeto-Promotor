@@ -12,7 +12,7 @@ import { ACTIVITY_CHECKLIST, type Activity } from '@/models/Activity';
 import type { MainTabParamList, VisitaStackParamList } from '@/navigation/types';
 import { elapsedLabel } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Visita em andamento (wireframe "6-Atividades", Documentação Funcional):
@@ -27,6 +27,7 @@ import { colors } from '@/theme';
  */
 export function VisitaScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
 
   const activeVisit = useActiveVisit(promoterId);

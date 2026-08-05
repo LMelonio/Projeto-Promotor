@@ -6,7 +6,7 @@ import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { SelectableList } from '@/components/ui/SelectableList';
 import type { PerfilStackParamList } from '@/navigation/types';
 import { usePreferencesStore, type Appearance } from '@/stores/preferencesStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const OPTIONS: { value: Appearance; label: string; icon: keyof typeof Feather.glyphMap }[] = [
   { value: 'light', label: 'Claro', icon: 'sun' },
@@ -15,12 +15,12 @@ const OPTIONS: { value: Appearance; label: string; icon: keyof typeof Feather.gl
 ];
 
 /**
- * Aparência — seleciona e persiste a preferência de tema. O app ainda não
- * recolore com o tema escolhido (ver `docs/DECISIONS.md`, item 26, para o
- * motivo).
+ * Aparência — seleciona e persiste a preferência de tema, e aplica de
+ * verdade via `useThemeSync` (ver `docs/DECISIONS.md`, item 29).
  */
 export function AparenciaScreen() {
   const navigation = useNavigation<NavigationProp<PerfilStackParamList>>();
+  const colors = useThemeColors();
   const appearance = usePreferencesStore((s) => s.appearance);
   const setAppearance = usePreferencesStore((s) => s.setAppearance);
 
@@ -46,8 +46,8 @@ export function AparenciaScreen() {
       />
 
       <Text className="text-ink-muted text-xs">
-        A preferência é salva neste aparelho. O app ainda usa o tema claro em todas as telas — o
-        suporte completo ao modo escuro está planejado para uma próxima etapa.
+        A preferência é salva neste aparelho e aplicada imediatamente. "Automático" segue o tema do
+        sistema operacional.
       </Text>
     </ScreenContainer>
   );

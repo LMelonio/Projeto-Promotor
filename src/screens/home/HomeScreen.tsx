@@ -15,7 +15,7 @@ import { useNotifications } from '@/screens/notificacoes/useNotificacoesData';
 import { useNetworkStatus } from '@/shared/hooks/useNetworkStatus';
 import { formatCurrencyBRL, formatPercentage } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Home / Dashboard (wireframe "2 - Início").
@@ -27,6 +27,7 @@ import { colors } from '@/theme';
  */
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const colors = useThemeColors();
   const promoter = useAuthStore((s) => s.promoter);
   const promoterId = promoter?.id;
 

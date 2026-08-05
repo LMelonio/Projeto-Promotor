@@ -19,7 +19,7 @@ import type { ClientesStackParamList, MainTabParamList } from '@/navigation/type
 import { useLiveLocation } from '@/shared/hooks/useLiveLocation';
 import { distanceKm, formatDistance } from '@/shared/utils/geo';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Abaixo de 200m o ícone de proximidade fica verde — limiar só visual, sem
@@ -59,6 +59,7 @@ export function CheckinScreen() {
   const { params } = useRoute<RouteProp<ClientesStackParamList, 'Checkin'>>();
   const { clientId, visitId } = params;
 
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const client = useClient(clientId);
   const checkIn = useCheckIn(promoterId, clientId);

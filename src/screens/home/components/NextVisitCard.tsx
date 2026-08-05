@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { NextVisit } from '@/models/DashboardSummary';
 import { daysAgoLabel } from '@/shared/utils/date';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 interface NextVisitCardProps {
   visit: NextVisit;
@@ -19,6 +19,7 @@ interface NextVisitCardProps {
  * para lá; a Fase 2 (Clientes) é quem implementa essa tela de destino.
  */
 export function NextVisitCard({ visit, onStartCheckIn }: NextVisitCardProps) {
+  const colors = useThemeColors();
   return (
     <Card className="gap-3">
       <Text className="text-ink-muted text-xs font-semibold tracking-wide">PRÓXIMA VISITA</Text>

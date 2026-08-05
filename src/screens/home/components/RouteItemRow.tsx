@@ -2,20 +2,13 @@ import { Feather } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import type { RouteItem } from '@/models/DashboardSummary';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const STATUS_ICON: Record<RouteItem['status'], keyof typeof Feather.glyphMap> = {
   completed: 'check-circle',
   in_progress: 'play-circle',
   scheduled: 'circle',
   cancelled: 'x-circle',
-};
-
-const STATUS_COLOR: Record<RouteItem['status'], string> = {
-  completed: colors.success,
-  in_progress: colors.brand,
-  scheduled: colors.inkMuted,
-  cancelled: colors.danger,
 };
 
 const STATUS_LABEL: Record<RouteItem['status'], string> = {
@@ -27,6 +20,13 @@ const STATUS_LABEL: Record<RouteItem['status'], string> = {
 
 /** Uma linha do "Roteiro de hoje" — cliente, horário e status visual (ícone + texto, nunca só cor). */
 export function RouteItemRow({ item, onPress }: { item: RouteItem; onPress?: () => void }) {
+  const colors = useThemeColors();
+  const STATUS_COLOR: Record<RouteItem['status'], string> = {
+    completed: colors.success,
+    in_progress: colors.brand,
+    scheduled: colors.inkMuted,
+    cancelled: colors.danger,
+  };
   return (
     <Pressable
       onPress={onPress}

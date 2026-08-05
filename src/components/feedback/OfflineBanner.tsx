@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Banner persistente "Sem conexão · trabalhando offline" (wireframe da Home)
@@ -10,6 +10,7 @@ import { colors } from '@/theme';
  * item 27). Mostrado só quando `useNetworkStatus` reporta offline.
  */
 export function OfflineBanner() {
+  const colors = useThemeColors();
   return (
     <View className="flex-row items-center gap-2 bg-warning/10 rounded-input px-3 py-2.5 mb-4">
       <Feather name="wifi-off" size={16} color={colors.warning} />

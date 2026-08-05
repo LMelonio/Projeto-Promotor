@@ -6,7 +6,7 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Card } from '@/components/ui/Card';
 import type { PerfilStackParamList } from '@/navigation/types';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /** Versão do app — mantida em sincronia manual com `app.config.ts`. */
 const APP_VERSION = '0.1.0';
@@ -16,6 +16,7 @@ const SUPPORT_PHONE = '(99) 3524-0000';
 /** Ajuda e sobre (wireframe de Perfil) — ver `docs/DECISIONS.md`, item 26. */
 export function AjudaScreen() {
   const navigation = useNavigation<NavigationProp<PerfilStackParamList>>();
+  const colors = useThemeColors();
 
   return (
     <ScreenContainer scroll>

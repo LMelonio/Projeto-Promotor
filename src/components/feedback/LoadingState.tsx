@@ -1,6 +1,6 @@
 import { ActivityIndicator, Text, View } from 'react-native';
 
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Estado de carregamento simples e genérico (spinner + texto opcional).
@@ -9,6 +9,7 @@ import { colors } from '@/theme';
  * aguardando primeira carga de dados".
  */
 export function LoadingState({ message }: { message?: string }) {
+  const colors = useThemeColors();
   return (
     <View className="flex-1 items-center justify-center gap-3 py-10">
       <ActivityIndicator color={colors.brand} size="large" />

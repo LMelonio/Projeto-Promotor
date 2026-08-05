@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Tokens de cor como CSS variables (RGB "r g b", sem função rgb()) — permite
+ * que toda classe Tailwind existente (bg-surface-bg, text-ink, bg-brand/10...)
+ * troque de valor sozinha entre claro/escuro, sem precisar de nenhuma classe
+ * "dark:" espalhada pelas telas. Ver `tailwind.config.js` (as cores referenciam
+ * estas variáveis) e `docs/DECISIONS.md`, item 29.
+ *
+ * Valores do modo escuro reaproveitados do artefato de comparativo publicado
+ * nesta mesma sessão (mesma paleta já usada para o tema escuro daquele
+ * documento), para manter o mesmo critério de contraste em vez de inventar
+ * valores novos.
+ */
+@layer base {
+  :root {
+    --color-brand: 225 31 28;
+    --color-brand-pressed: 153 27 27;
+    --color-success: 22 163 74;
+    --color-warning: 245 158 11;
+    --color-danger: 239 68 68;
+    --color-ink: 28 25 23;
+    --color-ink-muted: 120 113 108;
+    --color-line: 231 229 228;
+    --color-surface-bg: 250 250 249;
+    --color-surface-card: 255 255 255;
+  }
+
+  .dark {
+    --color-brand: 225 31 28;
+    --color-brand-pressed: 153 27 27;
+    --color-success: 34 197 94;
+    --color-warning: 251 191 36;
+    --color-danger: 248 113 113;
+    --color-ink: 242 239 234;
+    --color-ink-muted: 168 161 153;
+    --color-line: 52 48 44;
+    --color-surface-bg: 25 22 20;
+    --color-surface-card: 33 29 26;
+  }
+}

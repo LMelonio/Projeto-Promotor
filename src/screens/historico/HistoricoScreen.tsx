@@ -12,7 +12,7 @@ import { VISIT_OUTCOME_LABEL } from '@/models/Visit';
 import type { VisitHistoryEntry } from '@/models/VisitHistoryEntry';
 import { formatDurationMinutes } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 type PeriodKey = 'hoje' | '7dias' | '30dias' | 'todos';
 
@@ -59,6 +59,7 @@ function StatItem({
   count: number;
   label: string;
 }) {
+  const colors = useThemeColors();
   return (
     <View className="flex-row items-center gap-1.5">
       <Feather name={icon} size={14} color={colors.inkMuted} />
@@ -71,6 +72,7 @@ function StatItem({
 }
 
 function HistoryCard({ entry }: { entry: VisitHistoryEntry }) {
+  const colors = useThemeColors();
   return (
     <Card className="gap-2 mb-3">
       <View className="flex-row items-start justify-between gap-2">
@@ -121,6 +123,7 @@ function HistoryCard({ entry }: { entry: VisitHistoryEntry }) {
  * — ver `docs/DECISIONS.md`, item 25.
  */
 export function HistoricoScreen() {
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const history = useVisitHistory(promoterId);
 

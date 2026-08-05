@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { Pressable, Text } from 'react-native';
 
 import { Card } from './Card';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 export interface SelectableListItem<T> {
   value: T;
@@ -24,6 +24,7 @@ interface SelectableListProps<T> {
  * depois de aparecer de forma idêntica 4 vezes.
  */
 export function SelectableList<T>({ items, value, onChange, className }: SelectableListProps<T>) {
+  const colors = useThemeColors();
   return (
     <Card className={`gap-0.5 ${className ?? ''}`}>
       {items.map((item, index) => {

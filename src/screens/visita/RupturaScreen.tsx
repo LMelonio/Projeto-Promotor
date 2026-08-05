@@ -29,7 +29,7 @@ import {
 } from '@/models/Ruptura';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Registro de Ruptura (wireframe "9-Registro de ruptura", Documentação
@@ -41,6 +41,7 @@ import { colors } from '@/theme';
  */
 export function RupturaScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const activeVisit = useActiveVisit(promoterId);
   const clientId = activeVisit.data?.clientId;

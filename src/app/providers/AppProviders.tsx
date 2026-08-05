@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAutoSync } from '@/shared/hooks/useAutoSync';
+import { useThemeSync } from '@/shared/hooks/useThemeSync';
 
 /**
  * Cliente único do React Query — usado para TODO dado remoto (dashboard,
@@ -33,6 +34,8 @@ function SyncBootstrap({ children }: { children: React.ReactNode }) {
 }
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
+  useThemeSync();
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

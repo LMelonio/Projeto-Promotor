@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
 
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 type Variant = 'primary' | 'ghost' | 'success';
 
@@ -27,6 +27,7 @@ export function Button({
   className,
   ...pressableProps
 }: ButtonProps) {
+  const colors = useThemeColors();
   const isDisabled = disabled || loading;
 
   const variantClasses: Record<Variant, string> = {

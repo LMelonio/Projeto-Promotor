@@ -11,20 +11,13 @@ import { Card } from '@/components/ui/Card';
 import type { AppNotification, NotificationKind } from '@/models/Notification';
 import type { HomeStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const KIND_ICON: Record<NotificationKind, keyof typeof Feather.glyphMap> = {
   address_approved: 'check-circle',
   address_rejected: 'x-circle',
   visit_reminder: 'calendar',
   generic: 'info',
-};
-
-const KIND_COLOR: Record<NotificationKind, string> = {
-  address_approved: colors.success,
-  address_rejected: colors.danger,
-  visit_reminder: colors.brand,
-  generic: colors.inkMuted,
 };
 
 function daysAgo(iso: string): number {
@@ -67,6 +60,13 @@ function groupByDay(
  */
 export function NotificacoesScreen() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const colors = useThemeColors();
+  const KIND_COLOR: Record<NotificationKind, string> = {
+    address_approved: colors.success,
+    address_rejected: colors.danger,
+    visit_reminder: colors.brand,
+    generic: colors.inkMuted,
+  };
   const promoterId = useAuthStore((s) => s.promoter?.id);
   const notifications = useNotifications(promoterId);
   const markAsRead = useMarkNotificationRead(promoterId);

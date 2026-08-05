@@ -6,7 +6,7 @@ import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Card } from '@/components/ui/Card';
 import type { PerfilStackParamList } from '@/navigation/types';
 import { usePreferencesStore, type NotificationPreferences } from '@/stores/preferencesStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const OPTIONS: { key: keyof NotificationPreferences; label: string; description: string }[] = [
   {
@@ -29,6 +29,7 @@ const OPTIONS: { key: keyof NotificationPreferences; label: string; description:
 /** Notificações — configuração de quais avisos o promotor recebe (ver `docs/DECISIONS.md`, item 26). */
 export function NotificacoesConfigScreen() {
   const navigation = useNavigation<NavigationProp<PerfilStackParamList>>();
+  const colors = useThemeColors();
   const notifications = usePreferencesStore((s) => s.notifications);
   const toggleNotification = usePreferencesStore((s) => s.toggleNotification);
 

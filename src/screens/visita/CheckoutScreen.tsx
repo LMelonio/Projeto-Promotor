@@ -24,7 +24,7 @@ import { useCheckOut } from '@/screens/clientes/useClientesData';
 import { useLocation } from '@/shared/hooks/useLocation';
 import { formatDurationMinutes, minutesBetween } from '@/shared/utils/date';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 /**
  * Check-out (wireframe "10-Check-out", Documentação Funcional): resumo da
@@ -38,6 +38,7 @@ import { colors } from '@/theme';
  */
 export function CheckoutScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
+  const colors = useThemeColors();
   const promoterId = useAuthStore((s) => s.promoter?.id);
 
   const activeVisit = useActiveVisit(promoterId);

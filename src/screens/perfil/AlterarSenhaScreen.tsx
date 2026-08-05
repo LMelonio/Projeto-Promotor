@@ -7,7 +7,7 @@ import { useUpdatePassword } from './usePerfilData';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Button } from '@/components/ui/Button';
 import type { PerfilStackParamList } from '@/navigation/types';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -21,6 +21,7 @@ function PasswordField({
   value: string;
   onChangeText: (text: string) => void;
 }) {
+  const colors = useThemeColors();
   return (
     <View>
       <Text className="text-ink-muted text-xs mb-1.5 ml-1">{label}</Text>
@@ -39,6 +40,7 @@ function PasswordField({
 /** Alterar senha (wireframe de Perfil) — ver `docs/DECISIONS.md`, item 26. */
 export function AlterarSenhaScreen() {
   const navigation = useNavigation<NavigationProp<PerfilStackParamList>>();
+  const colors = useThemeColors();
   const updatePassword = useUpdatePassword();
 
   const [currentPassword, setCurrentPassword] = useState('');

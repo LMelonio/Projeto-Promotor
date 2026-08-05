@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { FINANCIAL_STATUS_LABEL, FINANCIAL_STATUS_TONE } from '@/models/Client';
 import type { ClientListItem } from '@/models/Client';
 import { daysAgoLabel } from '@/shared/utils/date';
-import { colors } from '@/theme';
+import { useThemeColors } from '@/theme';
 
 interface ClientCardProps {
   client: ClientListItem;
@@ -15,6 +15,7 @@ interface ClientCardProps {
 
 /** Card de um cliente na lista da carteira (wireframe "3 - Clientes"). */
 export function ClientCard({ client, onPress }: ClientCardProps) {
+  const colors = useThemeColors();
   return (
     <Pressable onPress={onPress}>
       <Card className="gap-2 mb-3">
