@@ -1,9 +1,9 @@
-import type { Activity, ActivityType } from '@/models/Activity';
+import type { Activity, ActivityKind } from '@/models/Activity';
 import type { FinancialStatus, VisitStatus } from '@/models/Client';
 import type { Product } from '@/models/Product';
 import type { Promoter } from '@/models/Promoter';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
-import type { Ruptura, RupturaStatus } from '@/models/Ruptura';
+import type { Ruptura, RupturaSeverity } from '@/models/Ruptura';
 import type { Coordinates } from '@/shared/utils/geo';
 
 /**
@@ -226,14 +226,13 @@ export const fakeStore = {
     visit.checkedOutAt = occurredAt;
   },
 
-  addActivity(input: { visitId: string; type: ActivityType; photoCount: number }): Activity {
+  addActivity(input: { visitId: string; kind: ActivityKind; photoCount: number }): Activity {
     const activity: FakeActivity = {
       id: `fake-activity-${(activitySeq += 1)}`,
       visitId: input.visitId,
-      type: input.type,
+      kind: input.kind,
       status: 'completed',
       photoCount: input.photoCount,
-      notes: null,
     };
     fakeActivities.push(activity);
     return activity;
@@ -255,7 +254,9 @@ export const fakeStore = {
     clientId: string;
     productId: string;
     productName: string;
+    severity: RupturaSeverity;
     quantityMissing: number;
+    photoCount: number;
     reportedAt: string;
   }): Ruptura {
     const ruptura: FakeRuptura = {
@@ -263,9 +264,11 @@ export const fakeStore = {
       clientId: input.clientId,
       productId: input.productId,
       productName: input.productName,
+      severity: input.severity,
       quantityMissing: input.quantityMissing,
+      photoCount: input.photoCount,
       reportedAt: input.reportedAt,
-      status: 'pending' as RupturaStatus,
+      status: 'pending',
     };
     fakeRupturas.push(ruptura);
     return ruptura;

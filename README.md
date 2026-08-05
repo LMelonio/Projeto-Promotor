@@ -29,7 +29,7 @@ Justificativa completa em [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 - Tela de **Home/Dashboard** (saudação, próxima visita, KPIs, roteiro do dia)
 - Tela de **Clientes/Roteiro** (busca por nome/código ERP + filtros: Roteiro do dia, Adimplentes, Inadimplentes)
 - Tela de **Detalhe do Cliente** + **Check-in georreferenciado** (captura de GPS ao vivo via `useLocation`, nunca posição em cache)
-- **Visita em andamento**: checklist de **Atividades** (6 tipos fixos, foto obrigatória capturada ao vivo via `expo-camera`), **Questionário** da visita (4 perguntas objetivas + observações), **registro de Ruptura** (falta de produto, restrita à carteira de produtos do promotor) e **Check-out georreferenciado** ("Finalizar visita")
+- **Visita em andamento**: checklist de **Atividades** (Questionário de PDV, Fotos da gôndola, Verificação de preços, Registro de ruptura — reescrito a partir da Documentação Funcional real, ver `docs/DECISIONS.md` item 21), **Questionário de PDV** como assistente de 8 perguntas de múltipla escolha, **Fotos** com galeria de miniaturas reais, **Ruptura** com leitura de EAN + gravidade + foto obrigatória, e **Check-out georreferenciado** ("Finalizar visita")
 - Tela de **Histórico** de visitas finalizadas (cliente, horário, duração, atividades/fotos)
 - Tela de **Perfil completo** (dados do promotor + status da fila de sincronização + logout)
 - **Fila de sincronização offline** (SQLite + `services/sync`): check-in/check-out/Atividade/Questionário/Ruptura nunca se perdem por falta de sinal — ficam na fila e reenviam sozinhos quando a conexão volta (ou manualmente, pelo Perfil)

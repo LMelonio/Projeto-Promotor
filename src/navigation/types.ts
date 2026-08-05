@@ -29,6 +29,7 @@ export type ClientesStackParamList = {
 export type VisitaStackParamList = {
   VisitaAtiva: undefined;
   Questionario: undefined;
+  FotosAtividade: undefined;
   Ruptura: undefined;
 };
 

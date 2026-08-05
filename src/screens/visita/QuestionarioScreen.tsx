@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
-import { Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { useActiveVisit, useQuestionnaire, useSubmitQuestionnaire } from './useVisitaData';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -9,27 +9,17 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import type { QuestionnaireAnswers } from '@/models/Questionnaire';
+import { PDV_QUESTIONNAIRE, type QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 
-const EMPTY_ANSWERS: QuestionnaireAnswers = {
-  productExposed: false,
-  merchandisingMaterial: false,
-  priceUpdated: false,
-  needsRestocking: false,
-  notes: '',
-};
-
-const QUESTIONS: { key: keyof Omit<QuestionnaireAnswers, 'notes'>; label: string }[] = [
-  { key: 'productExposed', label: 'Produto exposto adequadamente?' },
-  { key: 'merchandisingMaterial', label: 'Material de merchandising presente?' },
-  { key: 'priceUpdated', label: 'Preço atualizado na etiqueta?' },
-  { key: 'needsRestocking', label: 'Cliente precisa de reposição?' },
-];
-
-/** Questionário da visita (wireframe "Questionário", Fase 3) — 1 resposta por visita. */
+/**
+ * Questionário de PDV (wireframe "7-Questionário", Documentação Funcional):
+ * assistente passo a passo, uma pergunta de múltipla escolha por vez —
+ * substitui as 4 perguntas Sim/Não de uma tela só assumidas na Fase 3 (ver
+ * `docs/DECISIONS.md`, item 21).
+ */
 export function QuestionarioScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
   const promoterId = useAuthStore((s) => s.promoter?.id);
@@ -39,7 +29,8 @@ export function QuestionarioScreen() {
   const questionnaire = useQuestionnaire(visitId);
   const submitQuestionnaire = useSubmitQuestionnaire(visitId);
 
-  const [answers, setAnswers] = useState<QuestionnaireAnswers>(EMPTY_ANSWERS);
+  const [answers, setAnswers] = useState<QuestionnaireAnswers>({});
+  const [step, setStep] = useState(0);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -48,12 +39,6 @@ export function QuestionarioScreen() {
       initialized.current = true;
     }
   }, [questionnaire.data]);
-
-  async function handleSubmit() {
-    if (!visitId) return;
-    await submitQuestionnaire.mutateAsync(answers);
-    navigation.goBack();
-  }
 
   if (activeVisit.isLoading || questionnaire.isLoading) {
     return (
@@ -71,6 +56,25 @@ export function QuestionarioScreen() {
     );
   }
 
+  const question = PDV_QUESTIONNAIRE[step];
+  if (!question) return null;
+
+  const isLast = step === PDV_QUESTIONNAIRE.length - 1;
+  const isFirst = step === 0;
+  const selected = answers[question.id];
+
+  async function handleNext() {
+    if (selected === undefined) return;
+
+    if (!isLast) {
+      setStep((s) => s + 1);
+      return;
+    }
+
+    await submitQuestionnaire.mutateAsync(answers);
+    navigation.goBack();
+  }
+
   return (
     <ScreenContainer scroll>
       <View className="flex-row items-center gap-3 mt-4 mb-5">
@@ -80,39 +84,46 @@ export function QuestionarioScreen() {
           color={colors.ink}
           onPress={() => navigation.goBack()}
         />
-        <Text className="text-ink font-extrabold text-xl flex-1">Questionário</Text>
+        <Text className="text-ink font-extrabold text-xl flex-1" numberOfLines={1}>
+          Questionário de PDV
+        </Text>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Text className="text-ink-muted text-sm">Sair</Text>
+        </Pressable>
       </View>
 
-      <Card className="gap-0.5 mb-4">
-        {QUESTIONS.map((question, index) => (
-          <View
-            key={question.key}
-            className={`flex-row items-center justify-between py-3 gap-3 ${
-              index < QUESTIONS.length - 1 ? 'border-b border-line' : ''
-            }`}
-          >
-            <Text className="text-ink text-sm flex-1">{question.label}</Text>
-            <Switch
-              value={answers[question.key]}
-              onValueChange={(value) => setAnswers((prev) => ({ ...prev, [question.key]: value }))}
-              trackColor={{ false: colors.line, true: colors.brand }}
-            />
-          </View>
-        ))}
-      </Card>
-
-      <Text className="text-ink font-bold text-base mb-2">Observações</Text>
-      <Card className="mb-4">
-        <TextInput
-          value={answers.notes}
-          onChangeText={(notes) => setAnswers((prev) => ({ ...prev, notes }))}
-          placeholder="Observações sobre a visita (opcional)"
-          placeholderTextColor={colors.inkMuted}
-          multiline
-          numberOfLines={4}
-          className="text-ink text-sm min-h-[80px]"
-          textAlignVertical="top"
+      <Text className="text-ink-muted text-xs mb-2">
+        Pergunta {step + 1} de {PDV_QUESTIONNAIRE.length}
+      </Text>
+      <View className="h-1.5 rounded-full bg-line mb-5 overflow-hidden">
+        <View
+          className="h-full rounded-full bg-brand"
+          style={{ width: `${((step + 1) / PDV_QUESTIONNAIRE.length) * 100}%` }}
         />
+      </View>
+
+      <Text className="text-ink font-bold text-lg mb-4">{question.text}</Text>
+
+      <Card className="gap-0.5 mb-6">
+        {question.options.map((option, index) => {
+          const isSelected = selected === index;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => setAnswers((prev) => ({ ...prev, [question.id]: index }))}
+              className={`flex-row items-center gap-3 py-3 ${
+                index < question.options.length - 1 ? 'border-b border-line' : ''
+              }`}
+            >
+              <Feather
+                name={isSelected ? 'check-circle' : 'circle'}
+                size={20}
+                color={isSelected ? colors.brand : colors.inkMuted}
+              />
+              <Text className="text-ink text-sm flex-1">{option}</Text>
+            </Pressable>
+          );
+        })}
       </Card>
 
       {submitQuestionnaire.isError ? (
@@ -121,11 +132,22 @@ export function QuestionarioScreen() {
         </Text>
       ) : null}
 
-      <Button
-        label="Salvar questionário"
-        loading={submitQuestionnaire.isPending}
-        onPress={handleSubmit}
-      />
+      <View className="flex-row gap-3">
+        <Button
+          label="Anterior"
+          variant="ghost"
+          className="flex-1"
+          disabled={isFirst}
+          onPress={() => setStep((s) => Math.max(0, s - 1))}
+        />
+        <Button
+          label={isLast ? 'Concluir' : 'Próxima'}
+          className="flex-1"
+          disabled={selected === undefined}
+          loading={submitQuestionnaire.isPending}
+          onPress={handleNext}
+        />
+      </View>
     </ScreenContainer>
   );
 }

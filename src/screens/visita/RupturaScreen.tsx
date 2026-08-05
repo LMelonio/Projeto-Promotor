@@ -1,8 +1,11 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 
+import { ActivityCameraModal } from './components/ActivityCameraModal';
+import { EanScannerModal } from './components/EanScannerModal';
 import {
   useActiveVisit,
   useAssignedProducts,
@@ -16,7 +19,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { Product } from '@/models/Product';
-import type { RupturaStatus } from '@/models/Ruptura';
+import { RUPTURA_SEVERITY_LABEL, type RupturaSeverity, type RupturaStatus } from '@/models/Ruptura';
 import type { VisitaStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
@@ -26,10 +29,15 @@ const RUPTURA_STATUS_LABEL: Record<RupturaStatus, string> = {
   resolved: 'Resolvida',
 };
 
+const SEVERITIES: RupturaSeverity[] = ['stockout', 'low_stock'];
+
 /**
- * Registro de Ruptura (wireframe "Ruptura", Fase 3): falta de produto no
- * cliente da visita em andamento. Produto restrito à carteira do promotor
- * (`CarteiraProdutos`) — mesma regra de negócio da Carteira de Clientes.
+ * Registro de Ruptura (wireframe "9-Registro de ruptura", Documentação
+ * Funcional): falta de produto no cliente da visita em andamento. Produto
+ * restrito à carteira do promotor (`CarteiraProdutos`) — mesma regra de
+ * negócio da Carteira de Clientes. Leitura de EAN, severidade e foto
+ * obrigatória adicionadas a partir da documentação real (ver
+ * `docs/DECISIONS.md`, item 21).
  */
 export function RupturaScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
@@ -44,6 +52,11 @@ export function RupturaScreen() {
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('');
+  const [severity, setSeverity] = useState<RupturaSeverity | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanNotFound, setScanNotFound] = useState(false);
   const [lastOutcome, setLastOutcome] = useState<'synced' | 'queued' | null>(null);
 
   const filteredProducts = useMemo(() => {
@@ -57,11 +70,35 @@ export function RupturaScreen() {
     );
   }, [products.data, search]);
 
+  function selectProduct(product: Product) {
+    setSelectedProduct(product);
+    setSeverity(null);
+    setPhotoUri(null);
+    setScanNotFound(false);
+  }
+
+  function handleEanScanned(ean: string) {
+    setScannerOpen(false);
+    const found = (products.data ?? []).find((p) => p.eanCode === ean);
+    if (found) {
+      selectProduct(found);
+    } else {
+      setScanNotFound(true);
+    }
+  }
+
+  function handlePhotoConfirmed(uris: string[]) {
+    setCameraOpen(false);
+    if (uris[0]) setPhotoUri(uris[0]);
+  }
+
   async function handleSubmit() {
     const quantityMissing = Number(quantity);
     if (
       !clientId ||
       !selectedProduct ||
+      !severity ||
+      !photoUri ||
       !Number.isFinite(quantityMissing) ||
       quantityMissing <= 0
     ) {
@@ -73,12 +110,16 @@ export function RupturaScreen() {
       productId: selectedProduct.id,
       productName: selectedProduct.name,
       supplier: selectedProduct.supplier,
+      severity,
       quantityMissing,
+      photoCount: 1,
       reportedAt: new Date().toISOString(),
     });
 
     setLastOutcome(outcome.synced ? 'synced' : 'queued');
     setSelectedProduct(null);
+    setSeverity(null);
+    setPhotoUri(null);
     setQuantity('');
     setSearch('');
   }
@@ -99,7 +140,8 @@ export function RupturaScreen() {
     );
   }
 
-  const canSubmit = selectedProduct !== null && Number(quantity) > 0;
+  const canSubmit =
+    selectedProduct !== null && severity !== null && photoUri !== null && Number(quantity) > 0;
 
   return (
     <ScreenContainer scroll>
@@ -145,6 +187,27 @@ export function RupturaScreen() {
           </View>
 
           <View>
+            <Text className="text-ink-muted text-xs mb-1">Gravidade</Text>
+            <View className="flex-row gap-2">
+              {SEVERITIES.map((s) => (
+                <Pressable
+                  key={s}
+                  onPress={() => setSeverity(s)}
+                  className={`flex-1 h-11 rounded-input border items-center justify-center ${
+                    severity === s ? 'bg-brand border-brand' : 'border-line bg-surface-bg'
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${severity === s ? 'text-white' : 'text-ink'}`}
+                  >
+                    {RUPTURA_SEVERITY_LABEL[s]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View>
             <Text className="text-ink-muted text-xs mb-1">Quantidade em falta</Text>
             <TextInput
               value={quantity}
@@ -154,6 +217,26 @@ export function RupturaScreen() {
               keyboardType="number-pad"
               className="h-12 px-4 rounded-input border border-line bg-surface-bg text-ink text-[15px]"
             />
+          </View>
+
+          <View>
+            <Text className="text-ink-muted text-xs mb-1">Foto obrigatória</Text>
+            {photoUri ? (
+              <Pressable onPress={() => setCameraOpen(true)}>
+                <Image
+                  source={{ uri: photoUri }}
+                  style={{ width: 88, height: 88, borderRadius: 12 }}
+                  contentFit="cover"
+                />
+              </Pressable>
+            ) : (
+              <Button
+                label="Tirar foto"
+                variant="ghost"
+                icon={<Feather name="camera" size={16} color={colors.ink} />}
+                onPress={() => setCameraOpen(true)}
+              />
+            )}
           </View>
 
           {registerRuptura.isError ? (
@@ -171,28 +254,44 @@ export function RupturaScreen() {
         </Card>
       ) : (
         <>
-          <View className="flex-row items-center gap-2 h-12 px-4 rounded-input border border-line bg-surface-card mb-3">
-            <Feather name="search" size={18} color={colors.inkMuted} />
-            <TextInput
-              className="flex-1 text-[15px] text-ink"
-              placeholder="Buscar produto por nome ou código"
-              placeholderTextColor={colors.inkMuted}
-              value={search}
-              onChangeText={(text) => {
-                setSearch(text);
-                setLastOutcome(null);
-              }}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+          <View className="flex-row items-center gap-2 mb-3">
+            <View className="flex-1 flex-row items-center gap-2 h-12 px-4 rounded-input border border-line bg-surface-card">
+              <Feather name="search" size={18} color={colors.inkMuted} />
+              <TextInput
+                className="flex-1 text-[15px] text-ink"
+                placeholder="Buscar produto por nome ou código"
+                placeholderTextColor={colors.inkMuted}
+                value={search}
+                onChangeText={(text) => {
+                  setSearch(text);
+                  setLastOutcome(null);
+                  setScanNotFound(false);
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            <Pressable
+              onPress={() => setScannerOpen(true)}
+              className="w-12 h-12 rounded-input border border-line bg-surface-card items-center justify-center"
+              accessibilityLabel="Ler código EAN"
+            >
+              <Feather name="maximize" size={18} color={colors.ink} />
+            </Pressable>
           </View>
+
+          {scanNotFound ? (
+            <Text className="text-danger text-xs mb-3">
+              Nenhum produto da sua carteira tem esse código EAN.
+            </Text>
+          ) : null}
 
           {filteredProducts.length > 0 ? (
             <Card className="gap-0.5 mb-4">
               {filteredProducts.slice(0, 20).map((product, index) => (
                 <Pressable
                   key={product.id}
-                  onPress={() => setSelectedProduct(product)}
+                  onPress={() => selectProduct(product)}
                   className={`py-3 ${
                     index < Math.min(filteredProducts.length, 20) - 1 ? 'border-b border-line' : ''
                   }`}
@@ -234,7 +333,8 @@ export function RupturaScreen() {
                   {item.productName}
                 </Text>
                 <Text className="text-ink-muted text-xs mt-0.5">
-                  {item.quantityMissing} unid. em falta ·{' '}
+                  {item.quantityMissing} unid. · {RUPTURA_SEVERITY_LABEL[item.severity]} ·{' '}
+                  {item.photoCount} foto(s) ·{' '}
                   {new Date(item.reportedAt).toLocaleDateString('pt-BR')}
                 </Text>
               </View>
@@ -246,6 +346,20 @@ export function RupturaScreen() {
           )}
         />
       )}
+
+      <ActivityCameraModal
+        visible={cameraOpen}
+        activityLabel="Foto da ruptura"
+        minPhotos={1}
+        onCancel={() => setCameraOpen(false)}
+        onConfirm={handlePhotoConfirmed}
+      />
+
+      <EanScannerModal
+        visible={scannerOpen}
+        onCancel={() => setScannerOpen(false)}
+        onScanned={handleEanScanned}
+      />
     </ScreenContainer>
   );
 }

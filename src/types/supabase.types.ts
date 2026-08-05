@@ -79,14 +79,12 @@ export interface Database {
         };
       };
       /**
-       * Tabelas da Fase 3 (Atividades/Questionário/Ruptura) — assumidas a
-       * partir da planilha funcional de referência encontrada ao lado do
-       * projeto ("Base App Promotor.xlsx", abas Produtos/CarteiraProdutos/
-       * Atividades/Questionarios/Rupturas), ainda não confirmadas contra
-       * migrations reais. Nomes de coluna traduzidos para o padrão em
-       * inglês já usado nas demais tabelas deste arquivo. Reconciliar ao
-       * regenerar tipos (ver aviso no topo deste arquivo) — ver também
-       * `docs/DECISIONS.md`, item 12.
+       * Tabelas de Atividades/Questionário/Ruptura — reescritas a partir da
+       * Documentação Funcional real (PDF), que mostra uma estrutura
+       * diferente da planilha de dados de exemplo usada originalmente na
+       * Fase 3 (ver `docs/DECISIONS.md`, item 21). Ainda não confirmadas
+       * contra migrations reais — reconciliar ao regenerar tipos (aviso no
+       * topo deste arquivo).
        */
       products: {
         Row: {
@@ -112,45 +110,32 @@ export interface Database {
           visit_id: string;
           client_id: string;
           promoter_id: string;
-          type: string;
+          kind: 'questionnaire' | 'photos' | 'price_check' | 'ruptura';
           status: 'pending' | 'completed';
           photo_count: number;
-          notes: string | null;
         };
         Insert: {
           visit_id: string;
           client_id: string;
           promoter_id: string;
-          type: string;
+          kind: 'questionnaire' | 'photos' | 'price_check' | 'ruptura';
           status: 'pending' | 'completed';
           photo_count: number;
-          notes?: string | null;
         };
       };
       questionnaires: {
         Row: {
           id: string;
           visit_id: string;
-          product_exposed: boolean;
-          merchandising_material: boolean;
-          price_updated: boolean;
-          needs_restocking: boolean;
-          notes: string | null;
+          /** Índice (0-3) da alternativa escolhida, por id de pergunta — ver `models/Questionnaire.ts`. */
+          answers: Record<string, number>;
         };
         Insert: {
           visit_id: string;
-          product_exposed: boolean;
-          merchandising_material: boolean;
-          price_updated: boolean;
-          needs_restocking: boolean;
-          notes?: string | null;
+          answers: Record<string, number>;
         };
         Update: {
-          product_exposed?: boolean;
-          merchandising_material?: boolean;
-          price_updated?: boolean;
-          needs_restocking?: boolean;
-          notes?: string | null;
+          answers?: Record<string, number>;
         };
       };
       rupturas: {
@@ -159,7 +144,9 @@ export interface Database {
           client_id: string;
           product_id: string;
           supplier: string;
+          severity: 'stockout' | 'low_stock';
           quantity_missing: number;
+          photo_count: number;
           reported_at: string;
           status: 'pending' | 'resolved';
         };
@@ -167,7 +154,9 @@ export interface Database {
           client_id: string;
           product_id: string;
           supplier: string;
+          severity: 'stockout' | 'low_stock';
           quantity_missing: number;
+          photo_count: number;
           reported_at: string;
           status: 'pending' | 'resolved';
         };

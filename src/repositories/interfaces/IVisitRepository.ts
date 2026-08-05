@@ -1,4 +1,4 @@
-import type { Activity, ActivityType } from '@/models/Activity';
+import type { Activity, ActivityKind } from '@/models/Activity';
 import type { Product } from '@/models/Product';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { NewRupturaInput, Ruptura } from '@/models/Ruptura';
@@ -11,7 +11,7 @@ export interface IVisitRepository {
     visitId: string;
     clientId: string;
     promoterId: string;
-    type: ActivityType;
+    kind: ActivityKind;
     photoCount: number;
   }): Promise<Activity>;
   getQuestionnaire(visitId: string): Promise<QuestionnaireAnswers | null>;

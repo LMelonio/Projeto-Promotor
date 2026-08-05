@@ -1,22 +1,14 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { ActivityCameraModal } from './components/ActivityCameraModal';
-import {
-  useActiveVisit,
-  useActivities,
-  useQuestionnaire,
-  useRegisterActivity,
-} from './useVisitaData';
+import { useActiveVisit, useActivities, useRegisterActivity } from './useVisitaData';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ScreenContainer } from '@/components/layout/ScreenContainer';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABEL, type ActivityType } from '@/models/Activity';
+import { ACTIVITY_CHECKLIST, type Activity } from '@/models/Activity';
 import type { MainTabParamList, VisitaStackParamList } from '@/navigation/types';
 import { useCheckOut } from '@/screens/clientes/useClientesData';
 import { useLocation } from '@/shared/hooks/useLocation';
@@ -25,11 +17,15 @@ import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 
 /**
- * Visita em andamento (wireframe "Atividades", Fase 3): checklist dos seis
- * tipos fixos de atividade — cada um exige ao menos 1 foto capturada na
- * hora (nunca da galeria, decisão nº 8) — mais atalhos para Questionário e
- * Ruptura. Sem visita com check-in feito, mostra apenas o atalho para a
- * carteira de Clientes.
+ * Visita em andamento (wireframe "6-Atividades", Documentação Funcional):
+ * checklist de 4 itens — Questionário de PDV, Fotos da gôndola, Verificação
+ * de preços (mandatório, assumido — ver `models/Activity.ts`) e Registro de
+ * ruptura (opcional). Reescrito a partir da documentação real; ver
+ * `docs/DECISIONS.md`, item 21, para o histórico da mudança.
+ *
+ * Simplificação assumida: o checklist mostra só Pendente/Concluída — o
+ * progresso parcial de "Fotos da gôndola" (ex.: "1 de 3") fica local à tela
+ * de captura enquanto ela está aberta, não é persistido entre navegações.
  */
 export function VisitaScreen() {
   const navigation = useNavigation<NavigationProp<VisitaStackParamList>>();
@@ -39,36 +35,28 @@ export function VisitaScreen() {
   const visitId = activeVisit.data?.visitId;
 
   const activities = useActivities(visitId);
-  const questionnaire = useQuestionnaire(visitId);
   const registerActivity = useRegisterActivity(visitId);
   const checkOut = useCheckOut(promoterId, activeVisit.data?.clientId);
   const { requestLocation, errorMessage: locationError } = useLocation();
-
-  const [cameraType, setCameraType] = useState<ActivityType | null>(null);
 
   function handleGoToClientes() {
     navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Clientes');
   }
 
-  async function handleConfirmPhotos(photoCount: number) {
-    const type = cameraType;
-    setCameraType(null);
-    if (!type || !activeVisit.data || !promoterId) return;
-
+  async function handlePriceCheckToggle() {
+    if (!activeVisit.data || !promoterId) return;
     await registerActivity.mutateAsync({
       clientId: activeVisit.data.clientId,
       promoterId,
-      type,
-      photoCount,
+      kind: 'price_check',
+      photoCount: 0,
     });
   }
 
   async function handleCheckOut() {
     if (!activeVisit.data) return;
-
     const coords = await requestLocation();
     if (!coords) return;
-
     await checkOut.mutateAsync({ visitId: activeVisit.data.visitId, coords });
   }
 
@@ -104,46 +92,58 @@ export function VisitaScreen() {
   }
 
   const visit = activeVisit.data;
-  const completedByType = new Map((activities.data ?? []).map((a) => [a.type, a]));
+  const byKind = new Map((activities.data ?? []).map((a): [string, Activity] => [a.kind, a]));
+  const completedCount = ACTIVITY_CHECKLIST.filter((item) => byKind.has(item.kind)).length;
+  const pendingMandatory = ACTIVITY_CHECKLIST.filter(
+    (item) => item.mandatory && !byKind.has(item.kind),
+  ).length;
+  const canFinish = pendingMandatory === 0;
+
+  function handlePressItem(kind: (typeof ACTIVITY_CHECKLIST)[number]['kind']) {
+    if (byKind.has(kind)) return;
+    if (kind === 'questionnaire') navigation.navigate('Questionario');
+    else if (kind === 'photos') navigation.navigate('FotosAtividade');
+    else if (kind === 'ruptura') navigation.navigate('Ruptura');
+    else if (kind === 'price_check') handlePriceCheckToggle();
+  }
 
   return (
     <ScreenContainer scroll>
-      <View className="flex-row items-start justify-between gap-3 mt-4 mb-5">
-        <View className="flex-1">
-          <Text className="text-ink font-extrabold text-xl" numberOfLines={1}>
-            {visit.clientName}
-          </Text>
-          <Text className="text-ink-muted text-sm mt-0.5">
-            Visita em andamento · {elapsedLabel(visit.checkedInAt)}
-          </Text>
-        </View>
-        <Button
-          label="Finalizar visita"
-          variant="success"
-          loading={checkOut.isPending}
-          onPress={handleCheckOut}
+      <View className="mt-4 mb-5">
+        <Text className="text-ink font-extrabold text-xl" numberOfLines={1}>
+          {visit.clientName}
+        </Text>
+        <Text className="text-ink-muted text-sm mt-0.5">
+          Visita em andamento · {elapsedLabel(visit.checkedInAt)}
+        </Text>
+      </View>
+
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-ink font-bold text-base">Atividades</Text>
+        <Text className="text-ink-muted text-xs">
+          {completedCount} de {ACTIVITY_CHECKLIST.length} concluídas
+        </Text>
+      </View>
+
+      <View className="h-1.5 rounded-full bg-line mb-4 overflow-hidden">
+        <View
+          className="h-full rounded-full bg-brand"
+          style={{ width: `${(completedCount / ACTIVITY_CHECKLIST.length) * 100}%` }}
         />
       </View>
 
-      {checkOut.isError || locationError ? (
-        <Text className="text-danger text-xs mb-3">
-          {locationError ?? 'Não foi possível finalizar a visita agora. Tente novamente.'}
-        </Text>
-      ) : null}
-
-      <Text className="text-ink font-bold text-base mb-2">Atividades</Text>
       <Card className="gap-0.5 mb-4">
-        {ACTIVITY_TYPES.map((type, index) => {
-          const activity = completedByType.get(type);
+        {ACTIVITY_CHECKLIST.map((item, index) => {
+          const activity = byKind.get(item.kind);
           const done = Boolean(activity);
 
           return (
             <Pressable
-              key={type}
+              key={item.kind}
               disabled={done}
-              onPress={() => setCameraType(type)}
+              onPress={() => handlePressItem(item.kind)}
               className={`flex-row items-center justify-between py-3 ${
-                index < ACTIVITY_TYPES.length - 1 ? 'border-b border-line' : ''
+                index < ACTIVITY_CHECKLIST.length - 1 ? 'border-b border-line' : ''
               }`}
             >
               <View className="flex-row items-center gap-3 flex-1">
@@ -152,50 +152,52 @@ export function VisitaScreen() {
                   size={20}
                   color={done ? colors.success : colors.inkMuted}
                 />
-                <Text className="text-ink text-sm flex-1" numberOfLines={1}>
-                  {ACTIVITY_TYPE_LABEL[type]}
-                </Text>
+                <View className="flex-1">
+                  <Text className="text-ink text-sm" numberOfLines={1}>
+                    {item.label}
+                  </Text>
+                  <Text className="text-ink-muted text-xs mt-0.5">
+                    {done
+                      ? item.kind === 'photos'
+                        ? `Concluída · ${activity?.photoCount} foto(s)`
+                        : 'Concluída'
+                      : item.mandatory
+                        ? 'Pendente'
+                        : 'Opcional · Pendente'}
+                  </Text>
+                </View>
               </View>
-              {done ? (
-                <Text className="text-ink-muted text-xs">{activity?.photoCount} foto(s)</Text>
-              ) : (
-                <Feather name="camera" size={18} color={colors.inkMuted} />
-              )}
+              {!done ? (
+                <Feather
+                  name={item.kind === 'photos' ? 'camera' : 'chevron-right'}
+                  size={18}
+                  color={colors.inkMuted}
+                />
+              ) : null}
             </Pressable>
           );
         })}
       </Card>
 
-      <Pressable onPress={() => navigation.navigate('Questionario')}>
-        <Card className="flex-row items-center justify-between mb-3">
-          <View className="flex-row items-center gap-3">
-            <Feather name="clipboard" size={20} color={colors.ink} />
-            <Text className="text-ink text-sm font-semibold">Questionário da visita</Text>
-          </View>
-          {questionnaire.data ? (
-            <Badge label="Respondido" tone="success" />
-          ) : (
-            <Feather name="chevron-right" size={20} color={colors.inkMuted} />
-          )}
-        </Card>
-      </Pressable>
+      {checkOut.isError || locationError ? (
+        <Text className="text-danger text-xs mb-3">
+          {locationError ?? 'Não foi possível finalizar a visita agora. Tente novamente.'}
+        </Text>
+      ) : null}
 
-      <Pressable onPress={() => navigation.navigate('Ruptura')}>
-        <Card className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center gap-3">
-            <Feather name="alert-triangle" size={20} color={colors.ink} />
-            <Text className="text-ink text-sm font-semibold">Registrar ruptura</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color={colors.inkMuted} />
-        </Card>
-      </Pressable>
-
-      <ActivityCameraModal
-        visible={cameraType !== null}
-        activityLabel={cameraType ? ACTIVITY_TYPE_LABEL[cameraType] : ''}
-        onCancel={() => setCameraType(null)}
-        onConfirm={handleConfirmPhotos}
+      <Button
+        label="Finalizar visita"
+        variant="success"
+        disabled={!canFinish}
+        loading={checkOut.isPending}
+        onPress={handleCheckOut}
       />
+      {!canFinish ? (
+        <Text className="text-ink-muted text-xs text-center mt-2">
+          Conclua {pendingMandatory} atividade{pendingMandatory === 1 ? '' : 's'} obrigatória
+          {pendingMandatory === 1 ? '' : 's'}
+        </Text>
+      ) : null}
     </ScreenContainer>
   );
 }

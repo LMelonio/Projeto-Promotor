@@ -1,7 +1,7 @@
 import { fakeVisitRepository } from '../fakes/FakeVisitRepository';
 import type { IVisitRepository } from '../interfaces/IVisitRepository';
 import { useMockData } from '@/config/env';
-import type { Activity, ActivityType } from '@/models/Activity';
+import type { Activity, ActivityKind } from '@/models/Activity';
 import type { Product } from '@/models/Product';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { NewRupturaInput, Ruptura } from '@/models/Ruptura';
@@ -9,8 +9,10 @@ import type { ActiveVisit } from '@/models/Visit';
 import { supabase } from '@/services/supabase/client';
 
 /**
- * Camada de dados da Fase 3 (Atividades/Questionário/Ruptura). Ver aviso de
- * schema assumido no topo de `src/types/supabase.types.ts`.
+ * Camada de dados de Atividades/Questionário/Ruptura. Ver aviso de schema
+ * assumido no topo de `src/types/supabase.types.ts` e o raciocínio da
+ * reescrita a partir da Documentação Funcional em `docs/DECISIONS.md`,
+ * item 21.
  */
 class VisitRepository implements IVisitRepository {
   async getActiveVisit(promoterId: string): Promise<ActiveVisit | null> {
@@ -46,17 +48,16 @@ class VisitRepository implements IVisitRepository {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('activities')
-      .select('id, type, status, photo_count, notes')
+      .select('id, kind, status, photo_count')
       .eq('visit_id', visitId);
 
     if (error || !data) return [];
 
     return data.map((a) => ({
       id: a.id,
-      type: a.type as ActivityType,
+      kind: a.kind,
       status: a.status,
       photoCount: a.photo_count,
-      notes: a.notes,
     }));
   }
 
@@ -64,7 +65,7 @@ class VisitRepository implements IVisitRepository {
     visitId: string;
     clientId: string;
     promoterId: string;
-    type: ActivityType;
+    kind: ActivityKind;
     photoCount: number;
   }): Promise<Activity> {
     const { data, error } = await supabase
@@ -74,11 +75,11 @@ class VisitRepository implements IVisitRepository {
         visit_id: input.visitId,
         client_id: input.clientId,
         promoter_id: input.promoterId,
-        type: input.type,
+        kind: input.kind,
         status: 'completed',
         photo_count: input.photoCount,
       })
-      .select('id, type, status, photo_count, notes')
+      .select('id, kind, status, photo_count')
       .single();
 
     if (error || !data) {
@@ -87,10 +88,9 @@ class VisitRepository implements IVisitRepository {
 
     return {
       id: data.id,
-      type: data.type as ActivityType,
+      kind: data.kind,
       status: data.status,
       photoCount: data.photo_count,
-      notes: data.notes,
     };
   }
 
@@ -98,19 +98,13 @@ class VisitRepository implements IVisitRepository {
     const { data, error } = await supabase
       .schema('lynkz')
       .from('questionnaires')
-      .select('product_exposed, merchandising_material, price_updated, needs_restocking, notes')
+      .select('answers')
       .eq('visit_id', visitId)
       .maybeSingle();
 
     if (error || !data) return null;
 
-    return {
-      productExposed: data.product_exposed,
-      merchandisingMaterial: data.merchandising_material,
-      priceUpdated: data.price_updated,
-      needsRestocking: data.needs_restocking,
-      notes: data.notes ?? '',
-    };
+    return data.answers;
   }
 
   async submitQuestionnaire(visitId: string, answers: QuestionnaireAnswers): Promise<void> {
@@ -121,20 +115,16 @@ class VisitRepository implements IVisitRepository {
       .eq('visit_id', visitId)
       .maybeSingle();
 
-    const payload = {
-      product_exposed: answers.productExposed,
-      merchandising_material: answers.merchandisingMaterial,
-      price_updated: answers.priceUpdated,
-      needs_restocking: answers.needsRestocking,
-      notes: answers.notes || null,
-    };
-
     const { error } = existing
-      ? await supabase.schema('lynkz').from('questionnaires').update(payload).eq('id', existing.id)
+      ? await supabase
+          .schema('lynkz')
+          .from('questionnaires')
+          .update({ answers })
+          .eq('id', existing.id)
       : await supabase
           .schema('lynkz')
           .from('questionnaires')
-          .insert({ visit_id: visitId, ...payload });
+          .insert({ visit_id: visitId, answers });
 
     if (error) {
       throw new Error('Não foi possível salvar o questionário agora. Tente novamente.');
@@ -178,7 +168,7 @@ class VisitRepository implements IVisitRepository {
     const { data: rupturas, error } = await supabase
       .schema('lynkz')
       .from('rupturas')
-      .select('id, product_id, quantity_missing, reported_at, status')
+      .select('id, product_id, severity, quantity_missing, photo_count, reported_at, status')
       .eq('client_id', clientId)
       .order('reported_at', { ascending: false });
 
@@ -199,7 +189,9 @@ class VisitRepository implements IVisitRepository {
       id: r.id,
       productId: r.product_id,
       productName: nameById.get(r.product_id) ?? 'Produto',
+      severity: r.severity,
       quantityMissing: r.quantity_missing,
+      photoCount: r.photo_count,
       reportedAt: r.reported_at,
       status: r.status,
     }));
@@ -213,7 +205,9 @@ class VisitRepository implements IVisitRepository {
         client_id: input.clientId,
         product_id: input.productId,
         supplier: input.supplier,
+        severity: input.severity,
         quantity_missing: input.quantityMissing,
+        photo_count: input.photoCount,
         reported_at: input.reportedAt,
         status: 'pending',
       })
@@ -228,7 +222,9 @@ class VisitRepository implements IVisitRepository {
       id: data.id,
       productId: input.productId,
       productName: input.productName,
+      severity: input.severity,
       quantityMissing: input.quantityMissing,
+      photoCount: input.photoCount,
       reportedAt: data.reported_at,
       status: data.status,
     };

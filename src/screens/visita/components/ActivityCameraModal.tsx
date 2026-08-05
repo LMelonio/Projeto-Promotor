@@ -8,45 +8,51 @@ import { Button } from '@/components/ui/Button';
 interface ActivityCameraModalProps {
   visible: boolean;
   activityLabel: string;
+  minPhotos?: number;
   onCancel: () => void;
-  onConfirm: (photoCount: number) => void;
+  onConfirm: (photoUris: string[]) => void;
 }
 
 /**
- * Captura das fotos obrigatórias de uma atividade — câmera ao vivo via
- * `expo-camera`, nunca seleção de galeria (decisão registrada em
+ * Captura das fotos obrigatórias de uma atividade/ruptura — câmera ao vivo
+ * via `expo-camera`, nunca seleção de galeria (decisão registrada em
  * `docs/DECISIONS.md`, item 8: a integridade do dado enviado ao BI depende
  * de a foto ser da visita real).
  *
- * Nesta fase as fotos ficam apenas no dispositivo (contagem confirmada pelo
- * promotor); o upload dos binários para o Storage remoto entra junto da fila
- * de sincronização offline da Fase 4 (ver `docs/DECISIONS.md`, item 13).
+ * Devolve as URIs capturadas (não só a contagem) para telas que precisam
+ * mostrar miniaturas de verdade (ex.: `FotosAtividadeScreen`). As imagens
+ * ficam só na memória local do componente que chama este modal — o upload
+ * dos binários para o Storage remoto continua fora de escopo (ver
+ * `docs/DECISIONS.md`, item 13).
  */
 export function ActivityCameraModal({
   visible,
   activityLabel,
+  minPhotos = 1,
   onCancel,
   onConfirm,
 }: ActivityCameraModalProps) {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
-  const [photoCount, setPhotoCount] = useState(0);
+  const [photoUris, setPhotoUris] = useState<string[]>([]);
 
   async function handleCapture() {
     if (!cameraRef.current) return;
-    await cameraRef.current.takePictureAsync({ quality: 0.5, skipProcessing: true });
-    setPhotoCount((count) => count + 1);
+    const photo = await cameraRef.current.takePictureAsync({ quality: 0.5, skipProcessing: true });
+    if (photo?.uri) {
+      setPhotoUris((uris) => [...uris, photo.uri]);
+    }
   }
 
   function handleCancel() {
-    setPhotoCount(0);
+    setPhotoUris([]);
     onCancel();
   }
 
   function handleConfirm() {
-    const count = photoCount;
-    setPhotoCount(0);
-    onConfirm(count);
+    const uris = photoUris;
+    setPhotoUris([]);
+    onConfirm(uris);
   }
 
   return (
@@ -84,8 +90,8 @@ export function ActivityCameraModal({
 
             <View className="absolute bottom-0 left-0 right-0 pb-10 pt-6 items-center gap-4">
               <Text className="text-white text-xs">
-                {photoCount} foto{photoCount === 1 ? '' : 's'} capturada
-                {photoCount === 1 ? '' : 's'} · mínimo 1
+                {photoUris.length} foto{photoUris.length === 1 ? '' : 's'} capturada
+                {photoUris.length === 1 ? '' : 's'} · mínimo {minPhotos}
               </Text>
               <View className="flex-row items-center gap-10">
                 <Pressable
@@ -95,10 +101,10 @@ export function ActivityCameraModal({
                 />
                 <Pressable
                   onPress={handleConfirm}
-                  disabled={photoCount === 0}
+                  disabled={photoUris.length < minPhotos}
                   accessibilityLabel="Concluir captura"
                   className={`w-14 h-14 rounded-full items-center justify-center ${
-                    photoCount === 0 ? 'bg-white/20' : 'bg-success'
+                    photoUris.length < minPhotos ? 'bg-white/20' : 'bg-success'
                   }`}
                 >
                   <Feather name="check" size={24} color="#FFFFFF" />

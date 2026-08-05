@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 
-import type { Activity, ActivityType } from '@/models/Activity';
+import type { Activity, ActivityKind } from '@/models/Activity';
 import type { QuestionnaireAnswers } from '@/models/Questionnaire';
 import type { NewRupturaInput } from '@/models/Ruptura';
 import { visitRepository } from '@/repositories/implementations/VisitRepository';
 import { runOrQueue } from '@/services/sync/syncEngine';
 
-/** Hooks de dados das telas de Visita (Fase 3) — mesmo padrão de `screens/home/useHomeData.ts`. */
+/** Hooks de dados das telas de Visita — mesmo padrão de `screens/home/useHomeData.ts`. */
 export function useActiveVisit(promoterId: string | undefined) {
   return useQuery({
     queryKey: ['active-visit', promoterId],
@@ -37,7 +37,7 @@ export function useRegisterActivity(visitId: string | undefined) {
     mutationFn: (input: {
       clientId: string;
       promoterId: string;
-      type: ActivityType;
+      kind: ActivityKind;
       photoCount: number;
     }) => runOrQueue<Activity>('register_activity', { visitId: visitId as string, ...input }),
     onSuccess: (outcome, variables) => {
@@ -47,13 +47,12 @@ export function useRegisterActivity(visitId: string | undefined) {
       }
 
       queryClient.setQueryData<Activity[]>(['activities', visitId], (old) => [
-        ...(old ?? []),
+        ...(old ?? []).filter((a) => a.kind !== variables.kind),
         {
           id: `local-${Crypto.randomUUID()}`,
-          type: variables.type,
+          kind: variables.kind,
           status: 'completed',
           photoCount: variables.photoCount,
-          notes: null,
         },
       ]);
     },
