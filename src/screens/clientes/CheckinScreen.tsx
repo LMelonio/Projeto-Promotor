@@ -6,7 +6,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { useCheckIn, useClient } from './useClientesData';
@@ -66,6 +66,37 @@ export function CheckinScreen() {
   const { status: locationStatus, coords, errorMessage: locationError } = useLiveLocation();
   const now = useLiveClock();
 
+  /**
+   * Reseta o stack de Clientes de volta para a lista quando esta tela perde
+   * o foco — mas só se o check-in foi de fato confirmado (`didConfirmRef`).
+   * Se o usuário só apertou "voltar" sem confirmar, o blur não deve descartar
+   * o Detalhe do Cliente para onde ele está voltando.
+   *
+   * `reset()` (destino explícito) em vez de `popToTop()` (volta para o
+   * índice 0 do histórico ATUAL) — quando o check-in começa pelo botão
+   * "Iniciar check-in" da Home, a navegação salta direto de Home para
+   * `ClienteDetalhe` sem nunca empilhar `ClientesList` no histórico deste
+   * stack; nesse caminho, índice 0 é `ClienteDetalhe`, não `ClientesList`,
+   * então `popToTop()` deixava a aba Clientes travada no cliente mesmo
+   * depois do check-in (bug relatado pelo usuário testando no celular,
+   * reproduzido também no preview web depurando este arquivo). `reset()`
+   * não depende de qual caminho trouxe o usuário até aqui.
+   *
+   * O reset acontece no `blur` (não direto em `handleConfirm`) para só
+   * disparar depois que o React Navigation já processou a troca de aba —
+   * evita qualquer disputa entre a transição nativa do stack e a troca de
+   * aba seguinte.
+   */
+  const didConfirmRef = useRef(false);
+
+  useEffect(() => {
+    return navigation.addListener('blur', () => {
+      if (didConfirmRef.current) {
+        navigation.reset({ index: 0, routes: [{ name: 'ClientesList' }] });
+      }
+    });
+  }, [navigation]);
+
   if (client.isLoading) {
     return (
       <ScreenContainer>
@@ -93,14 +124,14 @@ export function CheckinScreen() {
   /**
    * Vai direto para o checklist de Atividades da visita (aba "Visita") em
    * vez de voltar ao Detalhe do Cliente — é o próximo passo natural do
-   * fluxo, e evitar o "Ir para Visita" extra também evita deixar o stack de
-   * Clientes parado no cliente/tela de check-in (repro real: a aba
-   * "Clientes" ficava travada nesse cliente até o fim da visita).
+   * fluxo. O reset do stack de Clientes (para a aba não ficar travada no
+   * cliente/tela de check-in) acontece no listener de `blur` acima, não
+   * aqui — ver o comentário lá para o motivo.
    */
   async function handleConfirm() {
     if (!coords) return;
     await checkIn.mutateAsync({ visitId, coords });
-    navigation.popToTop();
+    didConfirmRef.current = true;
     navigation.getParent<NavigationProp<MainTabParamList>>()?.navigate('Visita');
   }
 
